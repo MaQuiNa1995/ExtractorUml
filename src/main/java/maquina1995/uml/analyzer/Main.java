@@ -1,14 +1,16 @@
 package maquina1995.uml.analyzer;
 
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import maquina1995.uml.analyzer.dto.JavaTypeDto;
 import maquina1995.uml.analyzer.service.AnalyzerService;
-import maquina1995.uml.analyzer.service.ParserService;
+import maquina1995.uml.analyzer.service.DiagramService;
 
 @SpringBootApplication
 public class Main implements CommandLineRunner {
@@ -18,17 +20,14 @@ public class Main implements CommandLineRunner {
 	}
 
 	@Autowired
-	private ParserService parserService;
-	@Autowired
 	private AnalyzerService analyzerService;
+	@Autowired
+	private DiagramService diagramService;
 
 	@Override
 	public void run(String... args) throws Exception {
-
-		String srcPath = args[0];
-		parserService.createParser(srcPath);
-		analyzerService.createDiagram(Paths.get(srcPath));
-
+		List<JavaTypeDto> classes = analyzerService.analyzeFiles(Paths.get(args[0]));
+		diagramService.createDiagramFile(classes);
 	}
 
 }

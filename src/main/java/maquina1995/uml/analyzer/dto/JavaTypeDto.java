@@ -7,10 +7,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FieldDto {
+public abstract class JavaTypeDto {
 
 	private List<ModifierEnum> modifiers;
-	private String type;
+
+	private List<String> implement;
+	private List<String> extended;
+
 	private String name;
+
+	private List<FieldDto> fields;
+//	private List<MethodDto> methods;
 
 }
