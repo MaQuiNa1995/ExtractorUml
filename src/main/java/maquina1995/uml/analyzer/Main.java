@@ -8,7 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import maquina1995.uml.analyzer.dto.JavaTypeDto;
+import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.service.AnalyzerService;
 import maquina1995.uml.analyzer.service.DiagramService;
 
@@ -26,7 +26,7 @@ public class Main implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		List<JavaTypeDto> classes = analyzerService.analyzeFiles(Paths.get(args[0]));
+		List<ClassDiagramObject> classes = analyzerService.analyzeFiles(Paths.get(args[0]));
 		diagramService.createDiagramFile(classes);
 	}
 

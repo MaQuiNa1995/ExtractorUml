@@ -15,7 +15,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import maquina1995.uml.analyzer.dto.JavaTypeDto;
+import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 
 @Slf4j
 @Service
@@ -26,9 +26,9 @@ public class AnalyzerService {
 	private final JavaParser javaParser;
 	private final ClassService classService;
 
-	public List<JavaTypeDto> analyzeFiles(Path srcPath) {
+	public List<ClassDiagramObject> analyzeFiles(Path srcPath) {
 
-		List<JavaTypeDto> classes = new ArrayList<>();
+		List<ClassDiagramObject> classes = new ArrayList<>();
 
 		fileService.iterateDirectory(srcPath)
 		        .forEach(this.parseFile(classes));
@@ -36,7 +36,7 @@ public class AnalyzerService {
 		return classes;
 	}
 
-	private Consumer<Path> parseFile(List<JavaTypeDto> classes) {
+	private Consumer<Path> parseFile(List<ClassDiagramObject> classes) {
 		return javaFile -> this.getCompilationUnitFromPath(javaFile)
 		        .ifPresent(this.analyzeCompilationUnit(classes));
 	}
@@ -47,9 +47,8 @@ public class AnalyzerService {
 		        .getResult();
 	}
 
-	private Consumer<CompilationUnit> analyzeCompilationUnit(List<JavaTypeDto> analyzedClasses) {
+	private Consumer<CompilationUnit> analyzeCompilationUnit(List<ClassDiagramObject> analyzedClasses) {
 		return compilationUnit -> compilationUnit.findAll(ClassOrInterfaceDeclaration.class)
 		        .forEach(classOrInterface -> classService.analyzeClassOrInterface(classOrInterface, analyzedClasses));
 	}
-
 }

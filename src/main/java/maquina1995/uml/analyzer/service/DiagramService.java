@@ -9,13 +9,14 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.ClassDto;
-import maquina1995.uml.analyzer.dto.JavaTypeDto;
+import maquina1995.uml.analyzer.dto.FieldDto;
+import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 
 @Slf4j
 @Service
 public class DiagramService {
 
-	public void createDiagramFile(List<JavaTypeDto> classes) {
+	public void createDiagramFile(List<ClassDiagramObject> classes) {
 
 		File diagramFile = new File("diagram.txt");
 
@@ -28,8 +29,8 @@ public class DiagramService {
 		}
 	}
 
-	private void analyzeClasses(List<JavaTypeDto> classes, FileWriter fileWritter) throws IOException {
-		for (JavaTypeDto javaTypeDto : classes) {
+	private void analyzeClasses(List<ClassDiagramObject> classes, FileWriter fileWritter) throws IOException {
+		for (ClassDiagramObject javaTypeDto : classes) {
 
 			// Class
 			String classType = javaTypeDto instanceof ClassDto ? "class " : "interface ";
@@ -38,22 +39,76 @@ public class DiagramService {
 			String extendsString = this.createExtendsOrImplements(javaTypeDto.getExtended(), " extends ");
 			String implementsString = this.createExtendsOrImplements(javaTypeDto.getImplement(), " implements ");
 
-			javaTypeDto.get
-			
+			String fieldsStrings = this.createFieldsString(javaTypeDto.getFields());
+
 			String fullStringClassLine = this.createFullStringClassLine(javaTypeDto, extendsString, implementsString,
-			        classType);
+			        classType, fieldsStrings);
 
 			fileWritter.write(fullStringClassLine);
 		}
+	}
+
+	private String createFieldsString(List<FieldDto> fields) {
+		StringBuilder fieldsString = new StringBuilder("");
+
+		if (!fields.isEmpty()) {
+			fields.forEach(fieldDto -> {
+
+				int startPosition = fieldsString.length();
+
+				fieldsString.append(" ")
+				        .append(fieldDto.getType())
+				        .append(" ")
+				        .append(fieldDto.getName())
+				        .append("\n");
+
+				fieldsString.insert(startPosition, this.parseModifier(fieldDto.getModifiers()));
+			});
+		}
+
+		return fieldsString.toString();
+	}
+
+	private String parseModifier(List<String> modifiers) {
+
+		StringBuilder modifierBuilder = new StringBuilder("");
+		modifiers.stream()
+		        .map(this::parseAccesModifier)
+		        .forEach(modifierBuilder::append);
+
+		return modifierBuilder.toString();
+	}
+
+	private String parseAccesModifier(String modifier) {
+		String modifierParsed;
+		switch (modifier) {
+		case "public":
+			modifierParsed = "+";
+			break;
+		case "private":
+			modifierParsed = "-";
+			break;
+		case "protected":
+			modifierParsed = "#";
+			break;
+		case "package":
+			modifierParsed = "~";
+			break;
+		default:
+			modifierParsed = modifier;
+			break;
+		}
+
+		return modifierParsed;
 	}
 
 	private String createExtendsOrImplements(List<String> classes, String type) {
 		return classes.isEmpty() ? "" : type + String.join(",", classes);
 	}
 
-	private String createFullStringClassLine(JavaTypeDto javaTypeDto, String extendsString, String implementsString,
-	        String classType) {
-		return classType + javaTypeDto.getName() + extendsString + implementsString + "{}\n";
+	private String createFullStringClassLine(ClassDiagramObject javaTypeDto, String extendsString, String implementsString,
+	        String classType, String fieldsStrings) {
+		return classType + javaTypeDto.getName() + extendsString + implementsString + "{\n" + fieldsStrings + "\n}\n";
 	}
 
 }
