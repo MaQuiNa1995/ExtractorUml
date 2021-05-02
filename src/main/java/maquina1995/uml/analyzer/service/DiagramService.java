@@ -1,16 +1,22 @@
 package maquina1995.uml.analyzer.service;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Charsets;
+
+import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
+import net.sourceforge.plantuml.FileFormat;
+import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.SourceStringReader;
 
 @Slf4j
 @Service
@@ -18,37 +24,42 @@ public class DiagramService {
 
 	public void createDiagramFile(List<ClassDiagramObject> classes) {
 
-		File diagramFile = new File("diagram.txt");
+		StringBuilder diagramBuilder = new StringBuilder().append("@startuml\n")
+		        .append(this.analyzeClasses(classes))
+		        .append("@enduml\n");
 
-		try (FileWriter fileWritter = new FileWriter(diagramFile, Boolean.FALSE)) {
-			fileWritter.write("@startuml\n");
-			this.analyzeClasses(classes, fileWritter);
-			fileWritter.write("@enduml\n");
+		try {
+			SourceStringReader reader = new SourceStringReader(diagramBuilder.toString());
+			@Cleanup
+			final ByteArrayOutputStream os = new ByteArrayOutputStream();
+			String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+			final String svg = new String(os.toByteArray(), Charsets.UTF_8);
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
+
 	}
 
-	private void analyzeClasses(List<ClassDiagramObject> classes, FileWriter fileWritter) throws IOException {
-		for (ClassDiagramObject classDiagramObject : classes) {
+	private List<String> analyzeClasses(List<ClassDiagramObject> classes) {
+		return classes.stream()
+		        .map(e -> this.createFullStringDiagram(e))
+		        .collect(Collectors.toList());
+	}
 
-			// Class
-			String classType = classDiagramObject instanceof ClassDto ? "class " : "interface ";
+	private String createFullStringDiagram(ClassDiagramObject classDiagramObject) {
+		// Class
+		String classType = classDiagramObject instanceof ClassDto ? "class " : "interface ";
 
-			// Interface / Extends
-			String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
-			String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
+		// Interface / Extends
+		String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
+		String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
 
-			String acccessModifier = classDiagramObject.getAccessModifier();
-			String specialModifiers = classDiagramObject.getModifiers();
-			String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
+		String acccessModifier = classDiagramObject.getAccessModifier();
+		String specialModifiers = classDiagramObject.getModifiers();
+		String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
 
-			String fullStringClassLine = this.createFullStringClassLine(classDiagramObject, extendsString,
-			        implementsString, classType, fieldsStrings, acccessModifier, classDiagramObject.getMethods(),
-			        specialModifiers);
-
-			fileWritter.write(fullStringClassLine);
-		}
+		return this.createFullStringClassLine(classDiagramObject, extendsString, implementsString, classType,
+		        fieldsStrings, acccessModifier, classDiagramObject.getMethods(), specialModifiers);
 	}
 
 	private String createFieldsString(List<FieldDto> fields) {
