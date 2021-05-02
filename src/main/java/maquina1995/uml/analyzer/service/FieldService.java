@@ -47,9 +47,7 @@ public class FieldService {
 
 		fieldDeclaration.findAll(Modifier.class)
 		        .stream()
-		        .peek(System.out::println)
 		        .map(Modifier::getKeyword)
-		        .peek(System.out::println)
 		        .filter(modifierPredicate)
 		        .forEach(modifier -> modifiers.append(" ")
 		                .append(modifier));
