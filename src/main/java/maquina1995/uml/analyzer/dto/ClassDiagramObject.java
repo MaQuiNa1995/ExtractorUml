@@ -10,6 +10,7 @@ import lombok.Setter;
 @Setter
 public abstract class ClassDiagramObject {
 
+	private String accessModifier;
 	private final List<String> modifiers;
 
 	private final List<String> implement;
@@ -18,7 +19,7 @@ public abstract class ClassDiagramObject {
 	private String name;
 
 	private final List<FieldDto> fields;
-	private final List<MethodDto> methods;
+	private final List<String> methods;
 
 	protected ClassDiagramObject() {
 		this.modifiers = new ArrayList<>();

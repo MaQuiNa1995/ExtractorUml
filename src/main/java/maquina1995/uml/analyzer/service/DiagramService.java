@@ -8,9 +8,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
-import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 
 @Slf4j
 @Service
@@ -30,19 +30,20 @@ public class DiagramService {
 	}
 
 	private void analyzeClasses(List<ClassDiagramObject> classes, FileWriter fileWritter) throws IOException {
-		for (ClassDiagramObject javaTypeDto : classes) {
+		for (ClassDiagramObject classDiagramObject : classes) {
 
 			// Class
-			String classType = javaTypeDto instanceof ClassDto ? "class " : "interface ";
+			String classType = classDiagramObject instanceof ClassDto ? "class " : "interface ";
 
 			// Interface / Extends
-			String extendsString = this.createExtendsOrImplements(javaTypeDto.getExtended(), " extends ");
-			String implementsString = this.createExtendsOrImplements(javaTypeDto.getImplement(), " implements ");
+			String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
+			String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
 
-			String fieldsStrings = this.createFieldsString(javaTypeDto.getFields());
+			String acccessModifier = this.parseAccesModifier(classDiagramObject.getAccessModifier());
+			String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
 
-			String fullStringClassLine = this.createFullStringClassLine(javaTypeDto, extendsString, implementsString,
-			        classType, fieldsStrings);
+			String fullStringClassLine = this.createFullStringClassLine(classDiagramObject, extendsString,
+			        implementsString, classType, fieldsStrings, acccessModifier, classDiagramObject.getMethods());
 
 			fileWritter.write(fullStringClassLine);
 		}
@@ -54,34 +55,50 @@ public class DiagramService {
 		if (!fields.isEmpty()) {
 			fields.forEach(fieldDto -> {
 
-				int startPosition = fieldsString.length();
-
-				fieldsString.append(" ")
+				fieldsString.append(this.parseAccesModifier(fieldDto.getAccessModifier()))
+				        .append(this.parseModifier(fieldDto.getModifiers()))
+				        .append(" ")
 				        .append(fieldDto.getType())
 				        .append(" ")
 				        .append(fieldDto.getName())
 				        .append("\n");
 
-				fieldsString.insert(startPosition, this.parseModifier(fieldDto.getModifiers()));
 			});
 		}
 
 		return fieldsString.toString();
 	}
 
-	private String parseModifier(List<String> modifiers) {
+	private String parseModifier(List<String> modifiersFromDto) {
 
-		StringBuilder modifierBuilder = new StringBuilder("");
-		modifiers.stream()
-		        .map(this::parseAccesModifier)
-		        .forEach(modifierBuilder::append);
+		StringBuilder modifiers = new StringBuilder("");
 
-		return modifierBuilder.toString();
+		modifiersFromDto.stream()
+		        .map(String::toLowerCase)
+		        .map(this::parseAbstractStatic)
+		        .forEach(modifier -> modifiers.append(" ")
+		                .append(modifier));
+
+		return modifiers.toString()
+		        .trim();
+	}
+
+	private String parseAbstractStatic(String modifier) {
+
+		String parsedModifier = modifier;
+
+		if (modifier.matches("(static|abstract)")) {
+			parsedModifier = "{" + modifier + "}";
+		}
+
+		return parsedModifier;
+
 	}
 
 	private String parseAccesModifier(String modifier) {
 		String modifierParsed;
-		switch (modifier) {
+		switch (modifier.toLowerCase()) {
+
 		case "public":
 			modifierParsed = "+";
 			break;
@@ -91,11 +108,8 @@ public class DiagramService {
 		case "protected":
 			modifierParsed = "#";
 			break;
-		case "package":
-			modifierParsed = "~";
-			break;
 		default:
-			modifierParsed = modifier;
+			modifierParsed = "~";
 			break;
 		}
 
@@ -106,9 +120,12 @@ public class DiagramService {
 		return classes.isEmpty() ? "" : type + String.join(",", classes);
 	}
 
-	private String createFullStringClassLine(ClassDiagramObject javaTypeDto, String extendsString, String implementsString,
-	        String classType, String fieldsStrings) {
-		return classType + javaTypeDto.getName() + extendsString + implementsString + "{\n" + fieldsStrings + "\n}\n";
+	private String createFullStringClassLine(ClassDiagramObject javaTypeDto, String extendsString,
+	        String implementsString, String classType, String fieldsStrings, String acccessModifier,
+	        List<String> methods) {
+
+		return acccessModifier + classType + javaTypeDto.getName() + extendsString + implementsString + "{\n"
+		        + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
 	}
 
 }

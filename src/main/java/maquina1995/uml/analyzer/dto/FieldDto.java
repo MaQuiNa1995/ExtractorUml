@@ -11,6 +11,7 @@ import lombok.ToString;
 @ToString
 public class FieldDto {
 
+	private String accessModifier;
 	private List<String> modifiers;
 	private String type;
 	private String name;
