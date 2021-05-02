@@ -2,13 +2,13 @@ package maquina1995.uml.analyzer.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.CallableDeclaration.Signature;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -20,6 +20,7 @@ import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
 import maquina1995.uml.analyzer.dto.InterfaceDto;
+import maquina1995.uml.analyzer.util.NodeUtils;
 
 @Slf4j
 @Service
@@ -32,16 +33,10 @@ public class ClassService {
 	        List<ClassDiagramObject> classes) {
 
 		ClassDiagramObject classDto = classOrInterface.isInterface() ? new InterfaceDto() : new ClassDto();
-
-		List<String> methods = classDto.getMethods();
-		classOrInterface.getMethods()
-		        .stream()
-		        .map(MethodDeclaration::getSignature)
-		        .map(Signature::toString)
-		        .map(this::parseSpecialModifiers)
-		        .forEach(methods::add);
-
-		classDto.setAccessModifier(this.parseAccessmodifier(classOrInterface.getAccessSpecifier()
+		classDto.getMethods()
+		        .addAll(this.parseMethodSignatureToString(classOrInterface.getMethods()));
+		classDto.setModifiers(this.parseSpecialModifiers(classOrInterface.getModifiers()));
+		classDto.setAccessModifier(NodeUtils.parseAccesModifier(classOrInterface.getAccessSpecifier()
 		        .toString()));
 		classDto.setName(classOrInterface.getNameAsString());
 		classDto.getExtended()
@@ -54,13 +49,40 @@ public class ClassService {
 		classes.add(classDto);
 	}
 
-	private String parseSpecialModifiers(String signature) {
-		return signature.replace("abstract", "{abstract}")
-		        .replace("static", "{static}");
+	private String parseSpecialModifiers(NodeList<Modifier> modifiers) {
+		StringBuilder specialModifiers = NodeUtils.parseSpecialmodifiers(modifiers);
+
+		if (specialModifiers.length() != 0) {
+			specialModifiers.append(" ");
+		}
+
+		return specialModifiers.toString()
+		        .toLowerCase();
 	}
 
-	private String parseAccessmodifier(String accessModifier) {
-		return StringUtils.hasText(accessModifier) ? accessModifier.toLowerCase() : "";
+	private List<String> parseMethodSignatureToString(List<MethodDeclaration> methods) {
+		return methods.stream()
+		        .map(this.fullmethodAlchemist())
+		        .map(this::parseSpecialModifiers)
+		        .collect(Collectors.toList());
+	}
+
+	private Function<MethodDeclaration, String> fullmethodAlchemist() {
+		return e -> this.createFullMethodSignature(e.getSignature()
+		        .toString(),
+		        e.getAccessSpecifier()
+		                .toString(),
+		        e.getTypeAsString());
+	}
+
+	private String createFullMethodSignature(String signature, String accessSpecifier, String returnType) {
+		return String.join(" ", NodeUtils.parseAccesModifier(accessSpecifier), returnType, signature);
+	}
+
+	private String parseSpecialModifiers(String signature) {
+		return signature.toLowerCase()
+		        .replace("abstract", "{abstract}")
+		        .replace("static", "{static}");
 	}
 
 	private List<FieldDto> parseClassFields(List<FieldDeclaration> fields) {

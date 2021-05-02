@@ -39,11 +39,13 @@ public class DiagramService {
 			String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
 			String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
 
-			String acccessModifier = this.parseAccesModifier(classDiagramObject.getAccessModifier());
+			String acccessModifier = classDiagramObject.getAccessModifier();
+			String specialModifiers = classDiagramObject.getModifiers();
 			String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
 
 			String fullStringClassLine = this.createFullStringClassLine(classDiagramObject, extendsString,
-			        implementsString, classType, fieldsStrings, acccessModifier, classDiagramObject.getMethods());
+			        implementsString, classType, fieldsStrings, acccessModifier, classDiagramObject.getMethods(),
+			        specialModifiers);
 
 			fileWritter.write(fullStringClassLine);
 		}
@@ -55,7 +57,7 @@ public class DiagramService {
 		if (!fields.isEmpty()) {
 			fields.forEach(fieldDto -> {
 
-				fieldsString.append(this.parseAccesModifier(fieldDto.getAccessModifier()))
+				fieldsString.append(fieldDto.getAccessModifier())
 				        .append(this.parseModifier(fieldDto.getModifiers()))
 				        .append(" ")
 				        .append(fieldDto.getType())
@@ -95,37 +97,16 @@ public class DiagramService {
 
 	}
 
-	private String parseAccesModifier(String modifier) {
-		String modifierParsed;
-		switch (modifier.toLowerCase()) {
-
-		case "public":
-			modifierParsed = "+";
-			break;
-		case "private":
-			modifierParsed = "-";
-			break;
-		case "protected":
-			modifierParsed = "#";
-			break;
-		default:
-			modifierParsed = "~";
-			break;
-		}
-
-		return modifierParsed;
-	}
-
 	private String createExtendsOrImplements(List<String> classes, String type) {
 		return classes.isEmpty() ? "" : type + String.join(",", classes);
 	}
 
 	private String createFullStringClassLine(ClassDiagramObject javaTypeDto, String extendsString,
 	        String implementsString, String classType, String fieldsStrings, String acccessModifier,
-	        List<String> methods) {
+	        List<String> methods, String specialModifiers) {
 
-		return acccessModifier + classType + javaTypeDto.getName() + extendsString + implementsString + "{\n"
-		        + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
+		return acccessModifier + specialModifiers + classType + javaTypeDto.getName() + extendsString + implementsString
+		        + "{\n" + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
 	}
 
 }
