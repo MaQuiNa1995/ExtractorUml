@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.service.AnalyzerService;
 import maquina1995.uml.analyzer.service.DiagramService;
+import maquina1995.uml.analyzer.service.ParserService;
 
 @SpringBootApplication
 public class Main implements CommandLineRunner {
@@ -23,10 +24,14 @@ public class Main implements CommandLineRunner {
 	private AnalyzerService analyzerService;
 	@Autowired
 	private DiagramService diagramService;
+	@Autowired
+	private ParserService parserService;
 
 	@Override
 	public void run(String... args) throws Exception {
-		List<ClassDiagramObject> classes = analyzerService.analyzeFiles(Paths.get(args[0]));
+		String fileStringPath = args[0];
+		parserService.createParser(fileStringPath);
+		List<ClassDiagramObject> classes = analyzerService.analyzeFiles(Paths.get(fileStringPath));
 		diagramService.createDiagramFile(classes);
 	}
 

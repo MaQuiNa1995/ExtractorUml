@@ -38,7 +38,8 @@ public class NodeUtils {
 		modifiersnodeList.stream()
 		        .map(Modifier::getKeyword)
 		        .filter(NodeUtils.createModifierFilter())
-		        .forEach(modifier -> modifiers.append(modifier));
+		        .forEach(modifier -> modifiers.append(modifier)
+		                .append(" "));
 
 		return modifiers;
 	}

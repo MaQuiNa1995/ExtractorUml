@@ -11,19 +11,19 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import lombok.extern.slf4j.Slf4j;
+import maquina1995.uml.analyzer.global.Global;
 
 @Slf4j
 @Service
 public class ParserService {
 
-	public CombinedTypeSolver createParser(String srcPath) {
+	public void createParser(String srcPath) {
 
-		ReflectionTypeSolver reflectionTypeSolver = this.createReflectionTypeSolver();
+//		ReflectionTypeSolver reflectionTypeSolver = this.createReflectionTypeSolver();
 		final JavaParserTypeSolver javaParserTypeSolver = this.createjavaParserTypeSolver(srcPath);
 
 		log.debug("Creating combined type solver");
-		return new CombinedTypeSolver(javaParserTypeSolver, reflectionTypeSolver);
-
+		Global.TYPE_SOLVER.set(new CombinedTypeSolver(javaParserTypeSolver));
 	}
 
 	private JavaParserTypeSolver createjavaParserTypeSolver(String srcPath) {
