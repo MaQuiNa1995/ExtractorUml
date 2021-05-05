@@ -80,9 +80,8 @@ public class ClassService {
 	}
 
 	private String parseSpecialModifiers(String signature) {
-		return signature.toLowerCase()
-		        .replace("abstract", "{abstract}")
-		        .replace("static", "{static}");
+		return signature.replace("ABSTRACT", "{abstract}")
+		        .replace("STATIC", "{static}");
 	}
 
 	private List<FieldDto> parseClassFields(List<FieldDeclaration> fields) {

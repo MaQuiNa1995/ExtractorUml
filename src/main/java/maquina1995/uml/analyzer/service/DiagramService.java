@@ -1,22 +1,18 @@
 package maquina1995.uml.analyzer.service;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Charsets;
-
-import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
-import net.sourceforge.plantuml.FileFormat;
-import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.SourceStringReader;
 
 @Slf4j
 @Service
@@ -24,42 +20,53 @@ public class DiagramService {
 
 	public void createDiagramFile(List<ClassDiagramObject> classes) {
 
-		StringBuilder diagramBuilder = new StringBuilder().append("@startuml\n")
-		        .append(this.analyzeClasses(classes))
-		        .append("@enduml\n");
+		File diagramFile = new File("diagram.txt");
 
-		try {
-			SourceStringReader reader = new SourceStringReader(diagramBuilder.toString());
-			@Cleanup
-			final ByteArrayOutputStream os = new ByteArrayOutputStream();
-			String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
-			final String svg = new String(os.toByteArray(), Charsets.UTF_8);
+		try (FileWriter fileWritter = new FileWriter(diagramFile, Boolean.FALSE)) {
+			fileWritter.write("@startuml\n");
+			for (String fullClassString : this.analyzeClasses(classes, fileWritter)) {
+				fileWritter.write(fullClassString);
+			}
+			fileWritter.write("@enduml\n");
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
-
 	}
 
-	private List<String> analyzeClasses(List<ClassDiagramObject> classes) {
-		return classes.stream()
-		        .map(e -> this.createFullStringDiagram(e))
-		        .collect(Collectors.toList());
-	}
+	private List<String> analyzeClasses(List<ClassDiagramObject> classes, FileWriter fileWritter) throws IOException {
+		List<String> fullStringClasses = new ArrayList<>();
 
-	private String createFullStringDiagram(ClassDiagramObject classDiagramObject) {
-		// Class
-		String classType = classDiagramObject instanceof ClassDto ? "class " : "interface ";
+		StringBuilder fullCompositionClasses = new StringBuilder();
+		for (ClassDiagramObject classDiagramObject : classes) {
+			fullCompositionClasses.setLength(0);
 
-		// Interface / Extends
-		String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
-		String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
+			// Class
+			String classType = classDiagramObject instanceof ClassDto ? "class " : "interface ";
 
-		String acccessModifier = classDiagramObject.getAccessModifier();
-		String specialModifiers = classDiagramObject.getModifiers();
-		String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
+			// Interface / Extends
+			String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
+			String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
 
-		return this.createFullStringClassLine(classDiagramObject, extendsString, implementsString, classType,
-		        fieldsStrings, acccessModifier, classDiagramObject.getMethods(), specialModifiers);
+			String acccessModifier = classDiagramObject.getAccessModifier();
+			String specialModifiers = classDiagramObject.getModifiers();
+			String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
+			String className = classDiagramObject.getName();
+
+			Predicate<FieldDto> isProjectObject = FieldDto::getIsProjectObject;
+
+			classDiagramObject.getFields()
+			        .stream()
+			        .filter(isProjectObject)
+			        .map(FieldDto::getName)
+			        .forEach(fieldName -> fullCompositionClasses.append(String.join(" *-- ", className, fieldName))
+			                .append("\n"));
+
+			fullStringClasses.add(this.createFullStringClassLine(className, extendsString, implementsString, classType,
+			        fieldsStrings, acccessModifier, classDiagramObject.getMethods(), specialModifiers));
+
+			fullStringClasses.add(fullCompositionClasses.toString());
+		}
+		return fullStringClasses;
 	}
 
 	private String createFieldsString(List<FieldDto> fields) {
@@ -87,12 +94,12 @@ public class DiagramService {
 		StringBuilder modifiers = new StringBuilder("");
 
 		modifiersFromDto.stream()
-		        .map(String::toLowerCase)
 		        .map(this::parseAbstractStatic)
 		        .forEach(modifier -> modifiers.append(" ")
 		                .append(modifier));
 
-		return modifiers.toString()
+		return modifiers.append(" ")
+		        .toString()
 		        .trim();
 	}
 
@@ -100,7 +107,8 @@ public class DiagramService {
 
 		String parsedModifier = modifier;
 
-		if (modifier.matches("(static|abstract)")) {
+		if (modifier.toLowerCase()
+		        .matches("(static|abstract)")) {
 			parsedModifier = "{" + modifier + "}";
 		}
 
@@ -112,12 +120,12 @@ public class DiagramService {
 		return classes.isEmpty() ? "" : type + String.join(",", classes);
 	}
 
-	private String createFullStringClassLine(ClassDiagramObject javaTypeDto, String extendsString,
-	        String implementsString, String classType, String fieldsStrings, String acccessModifier,
-	        List<String> methods, String specialModifiers) {
+	private String createFullStringClassLine(String typeName, String extendsString, String implementsString,
+	        String classType, String fieldsStrings, String acccessModifier, List<String> methods,
+	        String specialModifiers) {
 
-		return acccessModifier + specialModifiers + classType + javaTypeDto.getName() + extendsString + implementsString
-		        + "{\n" + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
+		return acccessModifier + specialModifiers + classType + typeName + extendsString + implementsString + "{\n"
+		        + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
 	}
 
 }

@@ -6,24 +6,23 @@ import org.springframework.stereotype.Service;
 
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ParserConfiguration.LanguageLevel;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import lombok.extern.slf4j.Slf4j;
+import maquina1995.uml.analyzer.global.Global;
 
 @Slf4j
 @Service
 public class ParserService {
 
-	public CombinedTypeSolver createParser(String srcPath) {
+	public void createParser(String srcPath) {
 
 		ReflectionTypeSolver reflectionTypeSolver = this.createReflectionTypeSolver();
-		final JavaParserTypeSolver javaParserTypeSolver = this.createjavaParserTypeSolver(srcPath);
+//		final JavaParserTypeSolver javaParserTypeSolver = this.createjavaParserTypeSolver(srcPath);
 
 		log.debug("Creating combined type solver");
-		return new CombinedTypeSolver(javaParserTypeSolver, reflectionTypeSolver);
-
+		Global.TYPE_SOLVER.set(reflectionTypeSolver);
 	}
 
 	private JavaParserTypeSolver createjavaParserTypeSolver(String srcPath) {
