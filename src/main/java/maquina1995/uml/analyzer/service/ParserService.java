@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ParserConfiguration.LanguageLevel;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
@@ -19,11 +18,11 @@ public class ParserService {
 
 	public void createParser(String srcPath) {
 
-//		ReflectionTypeSolver reflectionTypeSolver = this.createReflectionTypeSolver();
-		final JavaParserTypeSolver javaParserTypeSolver = this.createjavaParserTypeSolver(srcPath);
+		ReflectionTypeSolver reflectionTypeSolver = this.createReflectionTypeSolver();
+//		final JavaParserTypeSolver javaParserTypeSolver = this.createjavaParserTypeSolver(srcPath);
 
 		log.debug("Creating combined type solver");
-		Global.TYPE_SOLVER.set(new CombinedTypeSolver(javaParserTypeSolver));
+		Global.TYPE_SOLVER.set(reflectionTypeSolver);
 	}
 
 	private JavaParserTypeSolver createjavaParserTypeSolver(String srcPath) {

@@ -10,23 +10,22 @@ import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 
-import lombok.RequiredArgsConstructor;
+import maquina1995.uml.analyzer.constants.RegExpConstants;
 import maquina1995.uml.analyzer.dto.FieldDto;
-import maquina1995.uml.analyzer.global.Global;
 import maquina1995.uml.analyzer.util.NodeUtils;
 
 @Service
-@RequiredArgsConstructor
 public final class FieldService {
-
-	private ParserService parserService;
 
 	public void analyzeField(FieldDeclaration fieldDeclaration, List<FieldDto> fieldsDto) {
 
 		String accessModifier = NodeUtils.parseAccesModifier(fieldDeclaration.getAccessSpecifier()
 		        .toString());
 
-		StringBuilder modifiers = NodeUtils.parseSpecialmodifiers(fieldDeclaration.findAll(Modifier.class));
+		String modifiers = NodeUtils.parseSpecialmodifiers(fieldDeclaration.findAll(Modifier.class))
+		        .toString()
+		        .trim()
+		        .toLowerCase();
 
 		// TODO: si viene int a, b[], c; peta
 		String type = fieldDeclaration.getElementType()
@@ -35,9 +34,7 @@ public final class FieldService {
 		fieldDeclaration.getVariables()
 		        .stream()
 		        .map(VariableDeclarator::getNameAsString)
-		        .forEach(this.createFieldDto(fieldsDto, accessModifier, modifiers.toString()
-		                .trim()
-		                .toLowerCase(), type));
+		        .forEach(this.createFieldDto(fieldsDto, accessModifier, modifiers, type));
 	}
 
 	private Consumer<String> createFieldDto(List<FieldDto> fieldsDto, String accessModifier, String modifiers,
@@ -48,13 +45,8 @@ public final class FieldService {
 			fieldDto.setAccessModifier(accessModifier);
 			fieldDto.setModifiers(Arrays.asList(modifiers.split(" ")));
 			fieldDto.setType(type);
-
-			fieldDto.setIsProjectObject(Global.TYPE_SOLVER.get()
-			        .tryToSolveType(type)
-			        .isSolved());
-
+			fieldDto.setIsProjectObject(!type.matches(RegExpConstants.JAVA_CORE_REG_EXP));
 			fieldsDto.add(fieldDto);
 		};
 	}
-
 }

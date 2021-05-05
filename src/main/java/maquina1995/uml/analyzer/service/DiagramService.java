@@ -24,7 +24,7 @@ public class DiagramService {
 
 		try (FileWriter fileWritter = new FileWriter(diagramFile, Boolean.FALSE)) {
 			fileWritter.write("@startuml\n");
-			for (String fullClassString : this.analyzeClasses(classes, fileWritter)) {
+			for (String fullClassString : this.analyzeClasses(classes)) {
 				fileWritter.write(fullClassString);
 			}
 			fileWritter.write("@enduml\n");
@@ -33,7 +33,7 @@ public class DiagramService {
 		}
 	}
 
-	private List<String> analyzeClasses(List<ClassDiagramObject> classes, FileWriter fileWritter) throws IOException {
+	private List<String> analyzeClasses(List<ClassDiagramObject> classes) {
 		List<String> fullStringClasses = new ArrayList<>();
 
 		StringBuilder fullCompositionClasses = new StringBuilder();
@@ -57,7 +57,7 @@ public class DiagramService {
 			classDiagramObject.getFields()
 			        .stream()
 			        .filter(isProjectObject)
-			        .map(FieldDto::getName)
+			        .map(FieldDto::getType)
 			        .forEach(fieldName -> fullCompositionClasses.append(String.join(" *-- ", className, fieldName))
 			                .append("\n"));
 
