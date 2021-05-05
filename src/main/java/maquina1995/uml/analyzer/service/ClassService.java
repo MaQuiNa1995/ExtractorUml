@@ -62,12 +62,12 @@ public class ClassService {
 
 	private List<String> parseMethodSignatureToString(List<MethodDeclaration> methods) {
 		return methods.stream()
-		        .map(this.fullmethodAlchemist())
+		        .map(this.fullMethodAlchemist())
 		        .map(this::parseSpecialModifiers)
 		        .collect(Collectors.toList());
 	}
 
-	private Function<MethodDeclaration, String> fullmethodAlchemist() {
+	private Function<MethodDeclaration, String> fullMethodAlchemist() {
 		return e -> this.createFullMethodSignature(e.getSignature()
 		        .toString(),
 		        e.getAccessSpecifier()

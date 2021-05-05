@@ -19,7 +19,7 @@ public class FileService {
 
 	public List<Path> iterateDirectory(final Path path) {
 
-		log.debug("ITERATING PATH: {}", path);
+		log.debug("Iterando la ruta: {}", path);
 
 		final List<Path> paths = new ArrayList<>();
 
@@ -38,7 +38,6 @@ public class FileService {
 
 		final Predicate<Path> isFile = path -> path.toFile()
 		        .isFile();
-
 		final Predicate<Path> hasJavaExtension = path -> path.toString()
 		        .endsWith(".java");
 

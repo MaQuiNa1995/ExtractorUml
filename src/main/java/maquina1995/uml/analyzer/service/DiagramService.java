@@ -1,8 +1,10 @@
 package maquina1995.uml.analyzer.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -13,27 +15,55 @@ import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
+import net.sourceforge.plantuml.FileFormat;
+import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.SourceStringReader;
 
 @Slf4j
 @Service
 public class DiagramService {
 
 	public void createDiagramFile(List<ClassDiagramObject> classes) {
+		String fullDiagram = this.createfullDiagramString(classes);
+		this.createDiagramFile(fullDiagram);
+	}
 
-		File diagramFile = new File("diagram.txt");
+	private void createDiagramFile(String fullDiagram) {
+		File diagramFile = new File("diagram.svg");
+		File diagramFileText = new File("diagram.txt");
 
-		try (FileWriter fileWritter = new FileWriter(diagramFile, Boolean.FALSE)) {
-			fileWritter.write("@startuml\n");
-			for (String fullClassString : this.analyzeClasses(classes, fileWritter)) {
-				fileWritter.write(fullClassString);
-			}
-			fileWritter.write("@enduml\n");
+		try (ByteArrayOutputStream os = new ByteArrayOutputStream();
+		        FileWriter fileWritter = new FileWriter(diagramFile, Boolean.FALSE);
+		        FileWriter fileWritter2 = new FileWriter(diagramFileText, Boolean.FALSE)) {
+
+			fileWritter2.write(fullDiagram);
+			this.createSvgFile(fullDiagram, os, fileWritter);
+
+			log.info("Se ha generado la imagen SVG en la ruta: {}", diagramFile.getAbsolutePath());
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
 	}
 
-	private List<String> analyzeClasses(List<ClassDiagramObject> classes, FileWriter fileWritter) throws IOException {
+	private void createSvgFile(String fullDiagram, ByteArrayOutputStream os, FileWriter fileWritter)
+	        throws IOException {
+		new SourceStringReader(fullDiagram).outputImage(os, new FileFormatOption(FileFormat.SVG));
+
+		final String fullSvgDiagram = new String(os.toByteArray(), StandardCharsets.UTF_8);
+		fileWritter.write(fullSvgDiagram);
+	}
+
+	private String createfullDiagramString(List<ClassDiagramObject> classes) {
+
+		StringBuilder fullDiagram = new StringBuilder("@startuml\n");
+		this.analyzeClasses(classes)
+		        .forEach(fullDiagram::append);
+		fullDiagram.append("@enduml");
+
+		return fullDiagram.toString();
+	}
+
+	private List<String> analyzeClasses(List<ClassDiagramObject> classes) {
 		List<String> fullStringClasses = new ArrayList<>();
 
 		StringBuilder fullCompositionClasses = new StringBuilder();
@@ -57,8 +87,9 @@ public class DiagramService {
 			classDiagramObject.getFields()
 			        .stream()
 			        .filter(isProjectObject)
-			        .map(FieldDto::getName)
-			        .forEach(fieldName -> fullCompositionClasses.append(String.join(" *-- ", className, fieldName))
+			        .map(FieldDto::getType)
+			        .forEach(fieldName -> fullCompositionClasses
+			                .append(String.join(" *-- ", className, fieldName.split("<")[0]))
 			                .append("\n"));
 
 			fullStringClasses.add(this.createFullStringClassLine(className, extendsString, implementsString, classType,
@@ -73,17 +104,13 @@ public class DiagramService {
 		StringBuilder fieldsString = new StringBuilder("");
 
 		if (!fields.isEmpty()) {
-			fields.forEach(fieldDto -> {
-
-				fieldsString.append(fieldDto.getAccessModifier())
-				        .append(this.parseModifier(fieldDto.getModifiers()))
-				        .append(" ")
-				        .append(fieldDto.getType())
-				        .append(" ")
-				        .append(fieldDto.getName())
-				        .append("\n");
-
-			});
+			fields.forEach(fieldDto -> fieldsString.append(fieldDto.getAccessModifier())
+			        .append(this.parseModifier(fieldDto.getModifiers()))
+			        .append(" ")
+			        .append(fieldDto.getType())
+			        .append(" ")
+			        .append(fieldDto.getName())
+			        .append("\n"));
 		}
 
 		return fieldsString.toString();
@@ -106,14 +133,11 @@ public class DiagramService {
 	private String parseAbstractStatic(String modifier) {
 
 		String parsedModifier = modifier;
-
 		if (modifier.toLowerCase()
 		        .matches("(static|abstract)")) {
 			parsedModifier = "{" + modifier + "}";
 		}
-
 		return parsedModifier;
-
 	}
 
 	private String createExtendsOrImplements(List<String> classes, String type) {

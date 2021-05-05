@@ -26,13 +26,11 @@ public class AnalyzerService {
 	private final JavaParser javaParser;
 	private final ClassService classService;
 
-	public List<ClassDiagramObject> analyzeFiles(Path srcPath) {
+	public List<ClassDiagramObject> analyzeFilesFromPath(Path srcPath) {
 
 		List<ClassDiagramObject> classes = new ArrayList<>();
-
 		fileService.iterateDirectory(srcPath)
 		        .forEach(this.parseFile(classes));
-
 		return classes;
 	}
 
