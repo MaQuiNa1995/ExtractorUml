@@ -12,20 +12,10 @@ public abstract class ClassDiagramObject {
 
 	private String accessModifier;
 	private String modifiers;
-
-	private final List<String> implement;
-	private final List<String> extended;
-
+	private final List<String> implement = new ArrayList<>();;
+	private final List<String> extended = new ArrayList<>();;
 	private String name;
-
-	private final List<FieldDto> fields;
-	private final List<String> methods;
-
-	protected ClassDiagramObject() {
-		this.implement = new ArrayList<>();
-		this.extended = new ArrayList<>();
-		this.fields = new ArrayList<>();
-		this.methods = new ArrayList<>();
-	}
+	private final List<FieldDto> fields = new ArrayList<>();
+	private final List<String> methods = new ArrayList<>();
 
 }

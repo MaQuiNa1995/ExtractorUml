@@ -5,6 +5,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class RegExpConstants {
 
+	// Primitive Types
+	public final String JAVA_PRIMITIVES = String.join("|", "boolean", "long", "byte", "int", "float", "double");
+
 	// Classes
 	public final String JAVA_LANG_REFLECT_CLASSES = String.join("|", "AccessibleObject", "Array", "Constructor",
 	        "Executable", "Field", "Method", "Modifier", "Parameter", "Proxy", "ReflectPermission");
@@ -47,6 +50,6 @@ public class RegExpConstants {
 	public final String JAVA_LANG = String.join("|", JAVA_LANG_CLASSES, JAVA_LANG_INTERFACES);
 
 	public final String JAVA_CORE_REG_EXP = "^(" + String.join("|", JAVA_LANG_REFLECT, JAVA_LANG_MANAGEMENT,
-	        JAVA_LANG_INVOKE, JAVA_LANG_INTRUMENT, JAVA_LANG) + ")$";
+	        JAVA_LANG_INVOKE, JAVA_LANG_INTRUMENT, JAVA_LANG) + JAVA_PRIMITIVES + ")$";
 
 }

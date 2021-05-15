@@ -13,6 +13,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.TypeParameter;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,18 +36,43 @@ public class ClassService {
 		ClassDiagramObject classDto = classOrInterface.isInterface() ? new InterfaceDto() : new ClassDto();
 		classDto.getMethods()
 		        .addAll(this.parseMethodSignatureToString(classOrInterface.getMethods()));
+
 		classDto.setModifiers(this.parseSpecialModifiers(classOrInterface.getModifiers()));
+
 		classDto.setAccessModifier(NodeUtils.parseAccesModifier(classOrInterface.getAccessSpecifier()
 		        .toString()));
-		classDto.setName(classOrInterface.getNameAsString());
+
+		classDto.setName(this.processName(classOrInterface));
+
 		classDto.getExtended()
 		        .addAll(this.parseClassNodeListToString(classOrInterface.getExtendedTypes()));
+
 		classDto.getImplement()
 		        .addAll(this.parseClassNodeListToString(classOrInterface.getImplementedTypes()));
+
 		classDto.getFields()
 		        .addAll(this.parseClassFields(classOrInterface.getFields()));
 
 		classes.add(classDto);
+	}
+
+	private String processName(ClassOrInterfaceDeclaration classOrInterface) {
+
+		StringBuilder classNameBuilder = new StringBuilder(classOrInterface.getNameAsString());
+
+		if (!classOrInterface.getTypeParameters()
+		        .isEmpty()) {
+			String genericTypes = classOrInterface.getTypeParameters()
+			        .stream()
+			        .map(TypeParameter::getNameAsString)
+			        .collect(Collectors.joining(","));
+
+			classNameBuilder.append("<")
+			        .append(genericTypes)
+			        .append(">");
+		}
+
+		return classNameBuilder.toString();
 	}
 
 	private String parseSpecialModifiers(NodeList<Modifier> modifiers) {

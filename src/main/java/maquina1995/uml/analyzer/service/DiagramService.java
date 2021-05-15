@@ -56,14 +56,14 @@ public class DiagramService {
 	private String createfullDiagramString(List<ClassDiagramObject> classes) {
 
 		StringBuilder fullDiagram = new StringBuilder("@startuml\n");
-		this.analyzeClasses(classes)
+		this.convertToString(classes)
 		        .forEach(fullDiagram::append);
 		fullDiagram.append("@enduml");
 
 		return fullDiagram.toString();
 	}
 
-	private List<String> analyzeClasses(List<ClassDiagramObject> classes) {
+	private List<String> convertToString(List<ClassDiagramObject> classes) {
 		List<String> fullStringClasses = new ArrayList<>();
 
 		StringBuilder fullCompositionClasses = new StringBuilder();
@@ -86,11 +86,18 @@ public class DiagramService {
 
 			classDiagramObject.getFields()
 			        .stream()
-			        .filter(isProjectObject)
+			        .filter(isProjectObject.and(e -> !e.getType()
+			                .contains("<")))
 			        .map(FieldDto::getType)
-			        .forEach(fieldName -> fullCompositionClasses
-			                .append(String.join(" *-- ", className, fieldName.split("<")[0]))
-			                .append("\n"));
+			        .forEach(fieldName -> {
+				        String compositionClass = fieldName.split("<")[0];
+				        if (!fullCompositionClasses.toString()
+				                .contains(compositionClass)) {
+					        fullCompositionClasses
+					                .append(String.join(" *-- ", className.split("<")[0], compositionClass))
+					                .append("\n");
+				        }
+			        });
 
 			fullStringClasses.add(this.createFullStringClassLine(className, extendsString, implementsString, classType,
 			        fieldsStrings, acccessModifier, classDiagramObject.getMethods(), specialModifiers));
