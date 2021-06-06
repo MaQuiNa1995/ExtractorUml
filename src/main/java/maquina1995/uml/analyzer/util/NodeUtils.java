@@ -32,10 +32,10 @@ public class NodeUtils {
 		return modifierParsed;
 	}
 
-	public StringBuilder parseSpecialmodifiers(List<Modifier> modifiersnodeList) {
+	public StringBuilder parseSpecialmodifiers(List<Modifier> modifiersNodeList) {
 		StringBuilder modifiers = new StringBuilder("");
 
-		modifiersnodeList.stream()
+		modifiersNodeList.stream()
 		        .map(Modifier::getKeyword)
 		        .filter(NodeUtils.createModifierFilter())
 		        .forEach(modifier -> modifiers.append(modifier)
@@ -49,7 +49,6 @@ public class NodeUtils {
 	}
 
 	private Predicate<Keyword> createModifierFilter() {
-		Predicate<Keyword> isFinal = NodeUtils.createModifierFilter(Keyword.FINAL);
 		Predicate<Keyword> isStatic = NodeUtils.createModifierFilter(Keyword.STATIC);
 		Predicate<Keyword> isDefault = NodeUtils.createModifierFilter(Keyword.DEFAULT);
 		Predicate<Keyword> isAbstract = NodeUtils.createModifierFilter(Keyword.ABSTRACT);
@@ -60,8 +59,7 @@ public class NodeUtils {
 		Predicate<Keyword> isTransitive = NodeUtils.createModifierFilter(Keyword.TRANSITIVE);
 		Predicate<Keyword> isVolatile = NodeUtils.createModifierFilter(Keyword.VOLATILE);
 
-		return isFinal.or(isStatic)
-		        .or(isDefault)
+		return isStatic.or(isDefault)
 		        .or(isAbstract)
 		        .or(isNative)
 		        .or(isStrictfp)

@@ -10,30 +10,58 @@ import org.springframework.stereotype.Service;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.TypeParameter;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
+import maquina1995.uml.analyzer.dto.EnumDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
 import maquina1995.uml.analyzer.dto.InterfaceDto;
 import maquina1995.uml.analyzer.util.NodeUtils;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClassService {
 
 	private final FieldService fieldService;
 
-	public void analyzeClassOrInterface(ClassOrInterfaceDeclaration classOrInterface,
-	        List<ClassDiagramObject> classes) {
+	public ClassDiagramObject analyzeEnum(EnumDeclaration enumObject) {
+		ClassDiagramObject enumDto = new EnumDto();
+		this.processEnum(enumObject, enumDto);
+		return enumDto;
+	}
+
+	public ClassDiagramObject analyzeClassOrInterface(ClassOrInterfaceDeclaration classOrInterface) {
 
 		ClassDiagramObject classDto = classOrInterface.isInterface() ? new InterfaceDto() : new ClassDto();
+		this.processClassOrInterface(classOrInterface, classDto);
+		return classDto;
+	}
+
+	private void processEnum(EnumDeclaration enumDeclaration, ClassDiagramObject enumDto) {
+		enumDto.getMethods()
+		        .addAll(this.parseMethodSignatureToString(enumDeclaration.getMethods()));
+
+		enumDto.setModifiers(this.parseSpecialModifiers(enumDeclaration.getModifiers()));
+
+		enumDto.setAccessModifier(NodeUtils.parseAccesModifier(enumDeclaration.getAccessSpecifier()
+		        .toString()));
+
+		enumDto.setName(enumDeclaration.getNameAsString());
+
+		enumDto.getImplement()
+		        .addAll(this.parseClassNodeListToString(enumDeclaration.getImplementedTypes()));
+
+		enumDto.getFields()
+		        .addAll(this.parseClassFields(enumDeclaration.getFields()));
+	}
+
+	private void processClassOrInterface(ClassOrInterfaceDeclaration classOrInterface, ClassDiagramObject classDto) {
 		classDto.getMethods()
 		        .addAll(this.parseMethodSignatureToString(classOrInterface.getMethods()));
 
@@ -52,8 +80,6 @@ public class ClassService {
 
 		classDto.getFields()
 		        .addAll(this.parseClassFields(classOrInterface.getFields()));
-
-		classes.add(classDto);
 	}
 
 	private String processName(ClassOrInterfaceDeclaration classOrInterface) {

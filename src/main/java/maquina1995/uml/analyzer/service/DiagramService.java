@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
+import maquina1995.uml.analyzer.dto.InterfaceDto;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
@@ -71,7 +72,7 @@ public class DiagramService {
 			fullCompositionClasses.setLength(0);
 
 			// Class
-			String classType = classDiagramObject instanceof ClassDto ? "class " : "interface ";
+			String classType = this.getType(classDiagramObject);
 
 			// Interface / Extends
 			String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
@@ -107,18 +108,25 @@ public class DiagramService {
 		return fullStringClasses;
 	}
 
-	private String createFieldsString(List<FieldDto> fields) {
-		StringBuilder fieldsString = new StringBuilder("");
-
-		if (!fields.isEmpty()) {
-			fields.forEach(fieldDto -> fieldsString.append(fieldDto.getAccessModifier())
-			        .append(this.parseModifier(fieldDto.getModifiers()))
-			        .append(" ")
-			        .append(fieldDto.getType())
-			        .append(" ")
-			        .append(fieldDto.getName())
-			        .append("\n"));
+	private String getType(ClassDiagramObject classDiagramObject) {
+		String type;
+		if (classDiagramObject instanceof ClassDto) {
+			type = "class ";
+		} else if (classDiagramObject instanceof InterfaceDto) {
+			type = "interface ";
+		} else {
+			type = "enum ";
 		}
+		return type;
+	}
+
+	private String createFieldsString(List<FieldDto> fields) {
+		StringBuilder fieldsString = new StringBuilder();
+
+		fields.forEach(fieldDto -> fieldsString.append(fieldDto.getAccessModifier())
+		        .append(this.parseModifier(fieldDto.getModifiers()) + " ")
+		        .append(fieldDto.getType() + " ")
+		        .append(fieldDto.getName() + "\n"));
 
 		return fieldsString.toString();
 	}

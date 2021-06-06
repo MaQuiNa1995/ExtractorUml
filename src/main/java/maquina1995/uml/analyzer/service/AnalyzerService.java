@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -36,7 +38,7 @@ public class AnalyzerService {
 
 	private Consumer<Path> parseFile(List<ClassDiagramObject> classes) {
 		return javaFile -> this.getCompilationUnitFromPath(javaFile)
-		        .ifPresent(this.analyzeCompilationUnit(classes));
+		        .ifPresent(e -> classes.addAll(this.analyzeCompilationUnit(e)));
 	}
 
 	@SneakyThrows
@@ -45,8 +47,31 @@ public class AnalyzerService {
 		        .getResult();
 	}
 
-	private Consumer<CompilationUnit> analyzeCompilationUnit(List<ClassDiagramObject> analyzedClasses) {
-		return compilationUnit -> compilationUnit.findAll(ClassOrInterfaceDeclaration.class)
-		        .forEach(classOrInterface -> classService.analyzeClassOrInterface(classOrInterface, analyzedClasses));
+	private List<ClassDiagramObject> analyzeCompilationUnit(CompilationUnit compilationUnit) {
+
+		List<ClassDiagramObject> classorInterfaces = this.processClassOrInterfaces(compilationUnit);
+		List<ClassDiagramObject> enums = this.processEnums(compilationUnit);
+
+		int listSize = classorInterfaces.size() + enums.size();
+
+		List<ClassDiagramObject> classDiagramObjects = new ArrayList<>(listSize);
+		classDiagramObjects.addAll(classorInterfaces);
+		classDiagramObjects.addAll(enums);
+
+		return classDiagramObjects;
+	}
+
+	private List<ClassDiagramObject> processClassOrInterfaces(CompilationUnit compilationUnit) {
+		return compilationUnit.findAll(ClassOrInterfaceDeclaration.class)
+		        .stream()
+		        .map(classService::analyzeClassOrInterface)
+		        .collect(Collectors.toList());
+	}
+
+	private List<ClassDiagramObject> processEnums(CompilationUnit compilationUnit) {
+		return compilationUnit.findAll(EnumDeclaration.class)
+		        .stream()
+		        .map(classService::analyzeEnum)
+		        .collect(Collectors.toList());
 	}
 }

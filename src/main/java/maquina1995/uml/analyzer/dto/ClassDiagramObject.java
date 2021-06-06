@@ -12,8 +12,8 @@ public abstract class ClassDiagramObject {
 
 	private String accessModifier;
 	private String modifiers;
-	private final List<String> implement = new ArrayList<>();;
-	private final List<String> extended = new ArrayList<>();;
+	private final List<String> implement = new ArrayList<>();
+	private final List<String> extended = new ArrayList<>();
 	private String name;
 	private final List<FieldDto> fields = new ArrayList<>();
 	private final List<String> methods = new ArrayList<>();
