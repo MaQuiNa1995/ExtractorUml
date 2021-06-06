@@ -22,7 +22,7 @@ public final class FieldService {
 		String accessModifier = NodeUtils.parseAccesModifier(fieldDeclaration.getAccessSpecifier()
 		        .toString());
 
-		String modifiers = NodeUtils.parseSpecialmodifiers(fieldDeclaration.findAll(Modifier.class))
+		String modifiers = NodeUtils.parseMethodModifiers(fieldDeclaration.findAll(Modifier.class))
 		        .toString()
 		        .trim()
 		        .toLowerCase();

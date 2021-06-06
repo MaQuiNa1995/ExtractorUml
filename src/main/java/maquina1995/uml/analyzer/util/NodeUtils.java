@@ -13,15 +13,15 @@ public class NodeUtils {
 
 	public String parseAccesModifier(String modifier) {
 		String modifierParsed;
-		switch (modifier.toLowerCase()) {
+		switch (modifier) {
 
-		case "public":
+		case "PUBLIC":
 			modifierParsed = "+";
 			break;
-		case "private":
+		case "PRIVATE":
 			modifierParsed = "-";
 			break;
-		case "protected":
+		case "PROTECTED":
 			modifierParsed = "#";
 			break;
 		default:
@@ -32,20 +32,37 @@ public class NodeUtils {
 		return modifierParsed;
 	}
 
-	public StringBuilder parseSpecialmodifiers(List<Modifier> modifiersNodeList) {
+	public StringBuilder parseMethodModifiers(List<Modifier> modifiersNodeList) {
 		StringBuilder modifiers = new StringBuilder("");
 
 		modifiersNodeList.stream()
 		        .map(Modifier::getKeyword)
 		        .filter(NodeUtils.createModifierFilter())
+		        .map(Keyword::toString)
+		        .map(e -> e.replace("ABSTRACT", "{abstract}")
+		                .replace("STATIC", "{static}"))
 		        .forEach(modifier -> modifiers.append(modifier)
 		                .append(" "));
 
 		return modifiers;
 	}
 
-	private Predicate<Keyword> createModifierFilter(Keyword keyword) {
-		return modifier -> modifier.equals(keyword);
+	public String parseClassModifiers(List<Modifier> modifiersNodeList) {
+		StringBuilder modifiers = new StringBuilder("");
+
+		modifiersNodeList.stream()
+		        .map(Modifier::getKeyword)
+		        .filter(NodeUtils.createModifierFilter())
+		        .map(Keyword::toString)
+		        .forEach(modifier -> modifiers.append(modifier)
+		                .append(" "));
+
+		if (modifiers.length() != 0) {
+			modifiers.append(" ");
+		}
+
+		return modifiers.toString()
+		        .toLowerCase();
 	}
 
 	private Predicate<Keyword> createModifierFilter() {
@@ -67,6 +84,10 @@ public class NodeUtils {
 		        .or(isTransient)
 		        .or(isTransitive)
 		        .or(isVolatile);
+	}
+
+	private Predicate<Keyword> createModifierFilter(Keyword keyword) {
+		return modifier -> modifier.equals(keyword);
 	}
 
 }

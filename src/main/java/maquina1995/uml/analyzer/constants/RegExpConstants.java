@@ -24,7 +24,7 @@ public class RegExpConstants {
 	        "InheritableThreadLocal", "Integer", "Long", "Math", "Number", "Object", "Package", "Process",
 	        "ProcessBuilder", "ProcessBuilder.Redirect", "Runtime", "RuntimePermission", "SecurityManager", "Short",
 	        "StackTraceElement", "StrictMath", "String", "StringBuffer", "StringBuilder", "System", "Thread",
-	        "ThreadGroup", "ThreadLocal", "Throwable", "Void", "Exception");
+	        "ThreadGroup", "ThreadLocal", "Throwable", "Void", "void", "Exception");
 
 	// Interfaces
 	public final String JAVA_LANG_INTERFACES = String.join("|", "Appendable", "AutoCloseable", "CharSequence",

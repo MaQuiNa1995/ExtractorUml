@@ -16,6 +16,6 @@ public abstract class ClassDiagramObject {
 	private final List<String> extended = new ArrayList<>();
 	private String name;
 	private final List<FieldDto> fields = new ArrayList<>();
-	private final List<String> methods = new ArrayList<>();
+	private final List<MethodDto> methods = new ArrayList<>();
 
 }
