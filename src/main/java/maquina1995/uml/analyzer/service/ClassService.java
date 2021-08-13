@@ -2,10 +2,12 @@ package maquina1995.uml.analyzer.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
@@ -15,12 +17,13 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.TypeParameter;
 
 import lombok.RequiredArgsConstructor;
-import maquina1995.uml.analyzer.dto.ClassDiagramObject;
 import maquina1995.uml.analyzer.dto.ClassDto;
+import maquina1995.uml.analyzer.dto.DiagramObject;
 import maquina1995.uml.analyzer.dto.EnumDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
 import maquina1995.uml.analyzer.dto.InterfaceDto;
 import maquina1995.uml.analyzer.dto.MethodDto;
+import maquina1995.uml.analyzer.dto.ParameterDto;
 import maquina1995.uml.analyzer.util.NodeUtils;
 
 @Service
@@ -28,56 +31,44 @@ import maquina1995.uml.analyzer.util.NodeUtils;
 public class ClassService {
 
 	private final FieldService fieldService;
+	private final PackageService packageService;
 
-	public ClassDiagramObject analyzeEnum(EnumDeclaration enumObject) {
-		ClassDiagramObject enumDto = new EnumDto();
-		this.processEnum(enumObject, enumDto);
+	public DiagramObject analyzeEnum(EnumDeclaration enumObject) {
+		DiagramObject enumDto = new EnumDto();
+		enumDto.setName(enumObject.getNameAsString());
+
+		this.processDiagramClass(enumDto, enumObject.getMethods(), enumObject.getModifiers(),
+		        enumObject.getAccessSpecifier()
+		                .toString(),
+		        enumObject.getImplementedTypes(), enumObject.getFields());
+
 		return enumDto;
 	}
 
-	public ClassDiagramObject analyzeClassOrInterface(ClassOrInterfaceDeclaration classOrInterface) {
-		ClassDiagramObject classDto = classOrInterface.isInterface() ? new InterfaceDto() : new ClassDto();
-		this.processClassOrInterface(classOrInterface, classDto);
-		return classDto;
+	public DiagramObject analyzeClassOrInterface(ClassOrInterfaceDeclaration classOrInterface) {
+		DiagramObject classDiagramObject = classOrInterface.isInterface() ? new InterfaceDto() : new ClassDto();
+		classDiagramObject.setName(this.processName(classOrInterface));
+
+		this.processDiagramClass(classDiagramObject, classOrInterface.getMethods(), classOrInterface.getModifiers(),
+		        classOrInterface.getAccessSpecifier()
+		                .toString(),
+		        classOrInterface.getImplementedTypes(), classOrInterface.getFields());
+
+		return classDiagramObject;
 	}
 
-	private void processEnum(EnumDeclaration enumDeclaration, ClassDiagramObject enumDto) {
-		enumDto.getMethods()
-		        .addAll(this.parseMethodSignatureToString(enumDeclaration.getMethods()));
+	private void processDiagramClass(DiagramObject classDiagramDto, List<MethodDeclaration> methods,
+	        List<Modifier> modifiers, String accessEspecifier, NodeList<ClassOrInterfaceType> implementedTypes,
+	        List<FieldDeclaration> fields) {
 
-		enumDto.setModifiers(NodeUtils.parseClassModifiers(enumDeclaration.getModifiers()));
-
-		enumDto.setAccessModifier(NodeUtils.parseAccesModifier(enumDeclaration.getAccessSpecifier()
-		        .toString()));
-
-		enumDto.setName(enumDeclaration.getNameAsString());
-
-		enumDto.getImplement()
-		        .addAll(this.parseClassNodeListToString(enumDeclaration.getImplementedTypes()));
-
-		enumDto.getFields()
-		        .addAll(this.parseClassFields(enumDeclaration.getFields()));
-	}
-
-	private void processClassOrInterface(ClassOrInterfaceDeclaration classOrInterface, ClassDiagramObject classDto) {
-		classDto.getMethods()
-		        .addAll(this.parseMethodSignatureToString(classOrInterface.getMethods()));
-
-		classDto.setModifiers(NodeUtils.parseClassModifiers(classOrInterface.getModifiers()));
-
-		classDto.setAccessModifier(NodeUtils.parseAccesModifier(classOrInterface.getAccessSpecifier()
-		        .toString()));
-
-		classDto.setName(this.processName(classOrInterface));
-
-		classDto.getExtended()
-		        .addAll(this.parseClassNodeListToString(classOrInterface.getExtendedTypes()));
-
-		classDto.getImplement()
-		        .addAll(this.parseClassNodeListToString(classOrInterface.getImplementedTypes()));
-
-		classDto.getFields()
-		        .addAll(this.parseClassFields(classOrInterface.getFields()));
+		classDiagramDto.getMethods()
+		        .addAll(this.parseMethodSignatureToString(methods));
+		classDiagramDto.setModifiers(NodeUtils.parseClassModifiers(modifiers));
+		classDiagramDto.setAccessModifier(NodeUtils.parseAccesModifier(accessEspecifier));
+		classDiagramDto.getImplement()
+		        .addAll(this.parseClassNodeListToString(implementedTypes));
+		classDiagramDto.getFields()
+		        .addAll(this.parseClassFields(fields));
 	}
 
 	private String processName(ClassOrInterfaceDeclaration classOrInterface) {
@@ -106,20 +97,31 @@ public class ClassService {
 	}
 
 	private MethodDto createFullMethodSignature(MethodDeclaration methodDeclaration) {
+		String returnTypeAsString = methodDeclaration.getTypeAsString();
 
 		MethodDto methodDto = new MethodDto();
-		methodDto.setReturnType(methodDeclaration.getTypeAsString());
+		methodDto.setReturnType(returnTypeAsString);
+		methodDto.setIsReturnFromJavaCore(packageService.isjavaCoreClass(methodDeclaration, returnTypeAsString));
 		methodDto.setName(methodDeclaration.getNameAsString());
 		methodDto.setAccessModifier(NodeUtils.parseAccesModifier(methodDeclaration.getAccessSpecifier()
 		        .asString()));
-		methodDto.setModifiers(NodeUtils.parseMethodModifiers(methodDeclaration.getModifiers())
+		methodDto.setModifiers(NodeUtils.parseModifiers(methodDeclaration.getModifiers())
 		        .toString());
 		methodDto.getParameters()
 		        .addAll(methodDeclaration.getTypeParameters()
 		                .stream()
-		                .map(TypeParameter::getNameAsString)
+		                .map(this.createParameterDto())
 		                .collect(Collectors.toList()));
 		return methodDto;
+	}
+
+	private Function<TypeParameter, ParameterDto> createParameterDto() {
+		return parameter -> {
+			ParameterDto parameterDto = new ParameterDto();
+			parameterDto.setIsFromJavaCore(packageService.isjavaCoreClass(parameter, parameter.getNameAsString()));
+			parameterDto.setName(parameter.getNameAsString());
+			return parameterDto;
+		};
 	}
 
 	private List<FieldDto> parseClassFields(List<FieldDeclaration> fields) {

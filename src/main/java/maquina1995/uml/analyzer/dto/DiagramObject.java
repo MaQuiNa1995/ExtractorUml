@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public abstract class ClassDiagramObject {
+public abstract class DiagramObject {
 
 	private String accessModifier;
 	private String modifiers;

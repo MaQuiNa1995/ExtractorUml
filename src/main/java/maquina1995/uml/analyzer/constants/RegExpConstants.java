@@ -50,6 +50,10 @@ public class RegExpConstants {
 	public final String JAVA_LANG = String.join("|", JAVA_LANG_CLASSES, JAVA_LANG_INTERFACES);
 
 	public final String JAVA_CORE_REG_EXP = "^(" + String.join("|", JAVA_LANG_REFLECT, JAVA_LANG_MANAGEMENT,
-	        JAVA_LANG_INVOKE, JAVA_LANG_INTRUMENT, JAVA_LANG) + JAVA_PRIMITIVES + ")$";
+	        JAVA_LANG_INVOKE, JAVA_LANG_INTRUMENT, JAVA_LANG, JAVA_PRIMITIVES) + ")$";
+
+	public final String JAVA_CORE_PACKAGE_REGEXP = "^(((java\\.)|(javax\\.)|(org\\.ietf\\.jgss)|(org\\.omg\\.)|(org\\.w3c\\.dom)|(org\\.xml\\.sax)).*)";
+
+	public final String BLACK_LIST = "^(Serializable)$";
 
 }

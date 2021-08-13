@@ -32,7 +32,7 @@ public class NodeUtils {
 		return modifierParsed;
 	}
 
-	public StringBuilder parseMethodModifiers(List<Modifier> modifiersNodeList) {
+	public StringBuilder parseModifiers(List<Modifier> modifiersNodeList) {
 		StringBuilder modifiers = new StringBuilder("");
 
 		modifiersNodeList.stream()
