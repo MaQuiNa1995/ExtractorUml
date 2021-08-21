@@ -6,17 +6,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.util.StringUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.DiagramObject;
 import maquina1995.uml.analyzer.service.AnalyzerService;
 import maquina1995.uml.analyzer.service.DiagramService;
 
 @Slf4j
+@RequiredArgsConstructor
 @SpringBootApplication
 public class Main implements CommandLineRunner {
 
@@ -24,17 +26,15 @@ public class Main implements CommandLineRunner {
 		SpringApplication.run(Main.class, args);
 	}
 
-	@Autowired
-	private AnalyzerService analyzerService;
-	@Autowired
-	private DiagramService diagramService;
+	private final AnalyzerService analyzerService;
+	private final DiagramService diagramService;
 
 	@Override
 	public void run(String... paths) {
 
 		String firstPath = paths[0];
 
-		if (firstPath != null && firstPath.endsWith(".txt")) {
+		if (StringUtils.hasText(firstPath) && firstPath.endsWith(".txt")) {
 			log.info("Creando Imagen svg a partir de txt en ruta: {}", firstPath);
 			diagramService.createDiagramFile(firstPath);
 		} else {
@@ -46,6 +46,8 @@ public class Main implements CommandLineRunner {
 			        .map(analyzerService::analyzeFilesFromPath)
 			        .flatMap(Collection::stream)
 			        .collect(Collectors.toList());
+
+			log.info("Creando Diagrama...");
 
 			diagramService.createDiagramFile(classes);
 		}
