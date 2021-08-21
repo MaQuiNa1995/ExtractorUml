@@ -154,6 +154,7 @@ public class DiagramServiceImpl implements DiagramService {
 			if (returnTypeProcessed.contains("<") && returnTypeProcessed.contains(">") && method.getReturnType()
 			        .split("<")[0].matches(
 			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
+
 				returnAggregation = " \"1\" o-- \"N\" ";
 				returnTypeProcessed = method.getReturnType()
 				        .substring(method.getReturnType()

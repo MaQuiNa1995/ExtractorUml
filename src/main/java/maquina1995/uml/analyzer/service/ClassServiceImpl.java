@@ -65,7 +65,7 @@ public class ClassServiceImpl implements ClassService {
 	        NodeList<ClassOrInterfaceType> extendedTypes, List<FieldDeclaration> fields) {
 
 		classDiagramDto.getMethods()
-		        .addAll(this.parseMethodSignatureToString(methods));
+		        .addAll(this.parseMethodSignature(methods));
 		classDiagramDto.setModifiers(NodeUtils.parseClassModifiers(modifiers));
 		classDiagramDto.setAccessModifier(NodeUtils.parseAccesModifier(accessEspecifier));
 		classDiagramDto.getImplement()
@@ -97,7 +97,7 @@ public class ClassServiceImpl implements ClassService {
 		return classNameBuilder.toString();
 	}
 
-	private List<MethodDto> parseMethodSignatureToString(List<MethodDeclaration> methods) {
+	private List<MethodDto> parseMethodSignature(List<MethodDeclaration> methods) {
 		return methods.stream()
 		        .map(this::createFullMethodSignature)
 		        .collect(Collectors.toList());
