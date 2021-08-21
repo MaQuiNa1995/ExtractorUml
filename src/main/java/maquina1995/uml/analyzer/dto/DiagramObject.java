@@ -10,12 +10,12 @@ import lombok.Setter;
 @Setter
 public abstract class DiagramObject {
 
-	private String accessModifier;
-	private String modifiers;
-	private final List<String> implement = new ArrayList<>();
-	private final List<String> extended = new ArrayList<>();
-	private String name;
-	private final List<FieldDto> fields = new ArrayList<>();
-	private final List<MethodDto> methods = new ArrayList<>();
+	protected String name;
+	protected String modifiers;
+	protected String accessModifier;
+	protected final List<String> implement = new ArrayList<>();
+	protected final List<String> extended = new ArrayList<>();
+	protected final List<FieldDto> fields = new ArrayList<>();
+	protected final List<MethodDto> methods = new ArrayList<>();
 
 }
