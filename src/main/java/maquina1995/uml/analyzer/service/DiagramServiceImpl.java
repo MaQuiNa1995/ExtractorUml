@@ -115,6 +115,7 @@ public class DiagramServiceImpl implements DiagramService {
 			        .filter(isProjectObject.and(typeIsNotGeneric))
 			        .filter(FieldDto::getIsProjectObject)
 			        .map(FieldDto::getType)
+			        .filter(e -> !e.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN))
 			        .forEach(fieldName -> {
 				        String compositionClass = fieldName.split("<")[0];
 				        this.addAggregation(fullCompositionClasses, className, compositionClass, " *-- ");
@@ -133,7 +134,9 @@ public class DiagramServiceImpl implements DiagramService {
 	private void addAggregation(StringBuilder fullCompositionClasses, String className, String compositionClass,
 	        String aggregationType) {
 		if (!fullCompositionClasses.toString()
-		        .contains(compositionClass) && !compositionClass.matches(RegExpConstants.JAVA_CORE_REG_EXP)) {
+		        .contains(compositionClass) && !compositionClass.matches(RegExpConstants.JAVA_CORE_REG_EXP)
+		        && !compositionClass.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
+
 			fullCompositionClasses.append(String.join(aggregationType, className.split("<")[0], compositionClass))
 			        .append("\n");
 		}
@@ -164,7 +167,7 @@ public class DiagramServiceImpl implements DiagramService {
 				returnTypeProcessed = returnTypeProcessed.split("<")[0];
 			}
 			if (!method.getIsReturnFromJavaCore()
-			        .booleanValue()) {
+			        .booleanValue() && !returnTypeProcessed.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
 				this.addAggregation(fullCompositionClasses, className, returnTypeProcessed, returnAggregation);
 			}
 		}

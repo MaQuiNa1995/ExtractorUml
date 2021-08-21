@@ -8,6 +8,8 @@ public class RegExpConstants {
 	// Primitive Types
 	public final String JAVA_PRIMITIVES = String.join("|", "boolean", "long", "byte", "int", "float", "double");
 
+	public final String GENERIC_CORE_JAVA_OBJECT_PATTERN = "^(BiConsumer|BiFunction|BinaryOperator|BiPredicate|BooleanSupplier|Consumer|DoubleBinaryOperator|DoubleConsumer|DoubleFunction|DoublePredicate|DoubleSupplier|DoubleToIntFunction|DoubleToLongFunction|DoubleUnaryOperator|Function|IntBinaryOperator|IntConsumer|IntFunction|IntPredicate|IntSupplier|IntToDoubleFunction|IntToLongFunction|IntUnaryOperator|LongBinaryOperator|LongConsumer|LongFunction|LongPredicate|LongSupplier|LongToDoubleFunction|LongToIntFunction|LongUnaryOperator|ObjDoubleConsumer|ObjIntConsumer|ObjLongConsumer|Predicate|Supplier|ToDoubleBiFunction|ToDoubleFunction|ToIntBiFunction|ToIntFunction|ToLongBiFunction|ToLongFunction|UnaryOperator|Optional)";
+
 	// Classes
 	public final String JAVA_LANG_REFLECT_CLASSES = String.join("|", "AccessibleObject", "Array", "Constructor",
 	        "Executable", "Field", "Method", "Modifier", "Parameter", "Proxy", "ReflectPermission");
