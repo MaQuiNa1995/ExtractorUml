@@ -14,13 +14,12 @@ public class MethodDto {
 	private String name;
 	private String accessModifier;
 	private List<ParameterDto> parameters;
-	private String returnType;
-	private Boolean isReturnFromJavaCore;
+	private ReturnDto returnType;
 	private String modifiers;
 
 	@Override
 	public String toString() {
-		return String.join(" ", this.accessModifier, this.modifiers, this.returnType, this.name) + " ("
+		return String.join(" ", this.accessModifier, this.modifiers, this.returnType.toString(), this.name) + " ("
 		        + String.join(",", this.parameters.stream()
 		                .map(ParameterDto::getName)
 		                .collect(Collectors.toList()))

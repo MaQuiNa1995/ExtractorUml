@@ -16,7 +16,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import maquina1995.uml.analyzer.dto.DiagramObject;
+import maquina1995.uml.analyzer.dto.DiagramObjectDto;
 
 @Slf4j
 @Service
@@ -25,10 +25,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
 	private final FileService fileService;
 	private final JavaParser javaParser;
-	private final ClassService classService;
+	private final DiagramObjectDtoMapper classService;
 
 	@Override
-	public List<DiagramObject> analyzeFilesFromPath(Path srcPath) {
+	public List<DiagramObjectDto> analyzeFilesFromPath(Path srcPath) {
 
 		log.info("Analizing DiagramObjects from {}", srcPath);
 
@@ -55,23 +55,23 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		        .orElse(null);
 	}
 
-	private List<DiagramObject> analyzeCompilationUnit(CompilationUnit compilationUnit) {
+	private List<DiagramObjectDto> analyzeCompilationUnit(CompilationUnit compilationUnit) {
 
-		Stream<DiagramObject> classOrInterfaces = this.processClassOrInterfaces(compilationUnit);
-		Stream<DiagramObject> enums = this.processEnums(compilationUnit);
+		Stream<DiagramObjectDto> classOrInterfaces = this.processClassOrInterfaces(compilationUnit);
+		Stream<DiagramObjectDto> enums = this.processEnums(compilationUnit);
 
 		return Stream.concat(classOrInterfaces, enums)
 		        .collect(Collectors.toList());
 	}
 
-	private Stream<DiagramObject> processClassOrInterfaces(CompilationUnit compilationUnit) {
+	private Stream<DiagramObjectDto> processClassOrInterfaces(CompilationUnit compilationUnit) {
 		return compilationUnit.findAll(ClassOrInterfaceDeclaration.class)
 		        .stream()
 		        .map(classService::analyzeClassOrInterface)
 		        .filter(Objects::nonNull);
 	}
 
-	private Stream<DiagramObject> processEnums(CompilationUnit compilationUnit) {
+	private Stream<DiagramObjectDto> processEnums(CompilationUnit compilationUnit) {
 		return compilationUnit.findAll(EnumDeclaration.class)
 		        .stream()
 		        .map(classService::analyzeEnum)

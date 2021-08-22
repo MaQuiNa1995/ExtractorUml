@@ -4,6 +4,6 @@ import com.github.javaparser.ast.Node;
 
 public interface PackageService {
 
-	boolean isjavaCoreClass(Node type, String name);
+	boolean isJavaCoreClass(Node type, String name);
 
 }

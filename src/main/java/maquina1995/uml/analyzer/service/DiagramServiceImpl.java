@@ -17,9 +17,10 @@ import org.springframework.stereotype.Service;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.constants.RegExpConstants;
-import maquina1995.uml.analyzer.dto.DiagramObject;
+import maquina1995.uml.analyzer.dto.DiagramObjectDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
 import maquina1995.uml.analyzer.dto.MethodDto;
+import maquina1995.uml.analyzer.dto.ReturnDto;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
@@ -51,7 +52,7 @@ public class DiagramServiceImpl implements DiagramService {
 	}
 
 	@Override
-	public void createDiagramFile(List<DiagramObject> classes) {
+	public void createDiagramFile(List<DiagramObjectDto> classes) {
 		String fullDiagram = this.createfullDiagramString(classes);
 		this.createJavaDiagramFile(fullDiagram);
 	}
@@ -61,11 +62,11 @@ public class DiagramServiceImpl implements DiagramService {
 		File diagramFileText = new File("diagram.txt");
 
 		try (ByteArrayOutputStream os = new ByteArrayOutputStream();
-		        FileWriter imageWritter = new FileWriter(diagramFile, Boolean.FALSE);
+		        FileWriter svgWriter = new FileWriter(diagramFile, Boolean.FALSE);
 		        FileWriter txtWriter = new FileWriter(diagramFileText, Boolean.FALSE)) {
 
 			txtWriter.write(fullDiagram);
-			this.createSvgFile(fullDiagram, os, imageWritter);
+			this.createSvgFile(fullDiagram, os, svgWriter);
 
 			log.info("Se ha generado la imagen SVG en la ruta: {}", diagramFile.getAbsolutePath());
 		} catch (IOException e) {
@@ -81,7 +82,7 @@ public class DiagramServiceImpl implements DiagramService {
 		fileWritter.write(fullSvgDiagram);
 	}
 
-	private String createfullDiagramString(List<DiagramObject> classes) {
+	private String createfullDiagramString(List<DiagramObjectDto> classes) {
 
 		StringBuilder fullDiagram = new StringBuilder("@startuml\nhide empty members\nskinparam groupInheritance 2\n");
 		this.convertToString(classes)
@@ -91,12 +92,12 @@ public class DiagramServiceImpl implements DiagramService {
 		return fullDiagram.toString();
 	}
 
-	private List<String> convertToString(List<DiagramObject> classes) {
+	private List<String> convertToString(List<DiagramObjectDto> classes) {
 		List<String> fullStringClasses = new ArrayList<>();
 
 		StringBuilder fullCompositionClasses = new StringBuilder();
 
-		for (DiagramObject classDiagramObject : classes) {
+		for (DiagramObjectDto classDiagramObject : classes) {
 
 			fullCompositionClasses.setLength(0);
 
@@ -127,7 +128,8 @@ public class DiagramServiceImpl implements DiagramService {
 				        this.addAggregation(fullCompositionClasses, className, compositionClass, " *-- ");
 			        });
 
-			List<String> methods = this.processMethods(classDiagramObject, fullCompositionClasses);
+			List<String> methods = this.processMethods(classDiagramObject.getMethods(), classDiagramObject.getName(),
+			        fullCompositionClasses);
 
 			fullStringClasses.add(this.createFullStringClassLine(className, extendsString, implementsString, classType,
 			        fieldsStrings, acccessModifier, methods, specialModifiers));
@@ -143,43 +145,24 @@ public class DiagramServiceImpl implements DiagramService {
 		        .contains(compositionClass) && !compositionClass.matches(RegExpConstants.JAVA_LANG_REG_EXP)
 		        && !compositionClass.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
 
-			fullCompositionClasses.append(String.join(aggregationType, className.split("<")[0], compositionClass))
+			fullCompositionClasses.append(String.join(aggregationType, className, compositionClass))
 			        .append("\n");
 		}
 	}
 
-	private List<String> processMethods(DiagramObject classDiagramObject, StringBuilder fullCompositionClasses) {
+	private List<String> processMethods(List<MethodDto> methods, String className,
+	        StringBuilder fullCompositionClasses) {
 
-		List<String> fullStringMethods = classDiagramObject.getMethods()
-		        .stream()
+		List<String> fullStringMethods = methods.stream()
 		        .map(MethodDto::toString)
 		        .collect(Collectors.toList());
-		String className = classDiagramObject.getName();
 
-		for (MethodDto method : classDiagramObject.getMethods()) {
+		for (MethodDto method : methods) {
 
-			String returnAggregation = " o-- ";
-			String returnTypeProcessed = method.getReturnType();
-			if (returnTypeProcessed.contains("<") && returnTypeProcessed.contains(">") && method.getReturnType()
-			        .split("<")[0].matches(
-			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
-
-				returnAggregation = " \"1\" o-- \"N\" ";
-				returnTypeProcessed = method.getReturnType()
-				        .substring(method.getReturnType()
-				                .indexOf("<") + 1, method.getReturnType()
-				                        .indexOf(">"));
-			} else if (returnTypeProcessed.contains("<") && returnTypeProcessed.contains(">")) {
-				returnTypeProcessed = returnTypeProcessed.split("<")[0];
-			}
-			if (!method.getIsReturnFromJavaCore()
-			        .booleanValue() && !returnTypeProcessed.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
-				this.addAggregation(fullCompositionClasses, className, returnTypeProcessed, returnAggregation);
-			}
+			this.processReturnAggregation(className, fullCompositionClasses, method);
 		}
 
-		classDiagramObject.getMethods()
-		        .stream()
+		methods.stream()
 		        .map(MethodDto::getParameters)
 		        .forEach(parameters -> parameters.forEach(parameter -> {
 
@@ -205,12 +188,29 @@ public class DiagramServiceImpl implements DiagramService {
 		return fullStringMethods;
 	}
 
-	private String getType(DiagramObject classDiagramObject) {
+	private void processReturnAggregation(String className, StringBuilder fullCompositionClasses, MethodDto method) {
+		String aggregationType = " o-- ";
+
+		ReturnDto returnType = method.getReturnType();
+
+		String returnTypeName = returnType.toString();
+		if (returnTypeName.matches(
+		        "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
+
+			aggregationType = " \"1\" o-- \"N\" ";
+		}
+
+		if (!returnType.getIsFromJavaCore()
+		        .booleanValue() && !returnTypeName.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
+			this.addAggregation(fullCompositionClasses, className, returnTypeName, aggregationType);
+		}
+	}
+
+	private String getType(DiagramObjectDto classDiagramObject) {
 		String type;
 
 		switch (classDiagramObject.getClass()
 		        .getSimpleName()) {
-
 		case "ClassDto":
 			type = "class ";
 			break;

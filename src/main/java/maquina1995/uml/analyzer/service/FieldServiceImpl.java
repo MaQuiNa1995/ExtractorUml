@@ -36,7 +36,7 @@ public final class FieldServiceImpl implements FieldService {
 		String type = fieldDeclaration.getElementType()
 		        .toString();
 
-		boolean isFromJavaCore = packageService.isjavaCoreClass(fieldDeclaration, type);
+		boolean isFromJavaCore = packageService.isJavaCoreClass(fieldDeclaration, type);
 
 		return fieldDeclaration.getVariables()
 		        .stream()

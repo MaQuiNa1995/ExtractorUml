@@ -17,7 +17,7 @@ import maquina1995.uml.analyzer.constants.RegExpConstants;
 public class PackageServiceImpl implements PackageService {
 
 	@Override
-	public boolean isjavaCoreClass(Node type, String name) {
+	public boolean isJavaCoreClass(Node type, String name) {
 
 		List<String> imports = this.getImportsFromClass(type);
 

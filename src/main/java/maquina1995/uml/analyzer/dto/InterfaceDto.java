@@ -1,5 +1,5 @@
 package maquina1995.uml.analyzer.dto;
 
-public class InterfaceDto extends DiagramObject {
+public class InterfaceDto extends DiagramObjectDto {
 
 }

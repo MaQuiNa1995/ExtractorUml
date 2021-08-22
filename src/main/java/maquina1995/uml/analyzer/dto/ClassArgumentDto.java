@@ -7,6 +7,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public class ParameterDto extends SimpleTypeDto {
+public class ClassArgumentDto extends SimpleTypeDto {
 
 }

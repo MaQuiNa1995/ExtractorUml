@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import maquina1995.uml.analyzer.dto.DiagramObject;
+import maquina1995.uml.analyzer.dto.DiagramObjectDto;
 import maquina1995.uml.analyzer.service.AnalyzerService;
 import maquina1995.uml.analyzer.service.DiagramService;
 
@@ -41,7 +41,7 @@ public class Main implements CommandLineRunner {
 			log.info("Analizando proyecto/s java en ruta/s: {}", Stream.of(paths)
 			        .collect(Collectors.joining(",")));
 
-			List<DiagramObject> classes = Stream.of(paths)
+			List<DiagramObjectDto> classes = Stream.of(paths)
 			        .map(Paths::get)
 			        .map(analyzerService::analyzeFilesFromPath)
 			        .flatMap(Collection::stream)
