@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.dto.DiagramObjectDto;
+import maquina1995.uml.analyzer.mapper.DiagramObjectDtoMapper;
 
 @Slf4j
 @Service
@@ -67,14 +68,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	private Stream<DiagramObjectDto> processClassOrInterfaces(CompilationUnit compilationUnit) {
 		return compilationUnit.findAll(ClassOrInterfaceDeclaration.class)
 		        .stream()
-		        .map(classService::analyzeClassOrInterface)
+		        .map(classService::mapClassOrInterface)
 		        .filter(Objects::nonNull);
 	}
 
 	private Stream<DiagramObjectDto> processEnums(CompilationUnit compilationUnit) {
 		return compilationUnit.findAll(EnumDeclaration.class)
 		        .stream()
-		        .map(classService::analyzeEnum)
+		        .map(classService::mapEnum)
 		        .filter(Objects::nonNull);
 	}
 }

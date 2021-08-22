@@ -1,4 +1,4 @@
-package maquina1995.uml.analyzer.service;
+package maquina1995.uml.analyzer.mapper;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
@@ -7,8 +7,8 @@ import maquina1995.uml.analyzer.dto.DiagramObjectDto;
 
 public interface DiagramObjectDtoMapper {
 
-	DiagramObjectDto analyzeEnum(EnumDeclaration enumObject);
+	DiagramObjectDto mapEnum(EnumDeclaration enumObject);
 
-	DiagramObjectDto analyzeClassOrInterface(ClassOrInterfaceDeclaration classOrInterface);
+	DiagramObjectDto mapClassOrInterface(ClassOrInterfaceDeclaration classOrInterface);
 
 }

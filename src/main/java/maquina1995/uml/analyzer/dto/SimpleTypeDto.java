@@ -1,6 +1,7 @@
 package maquina1995.uml.analyzer.dto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,13 +14,22 @@ import lombok.experimental.SuperBuilder;
 public class SimpleTypeDto {
 
 	protected String name;
+	protected String type;
 	protected Boolean isFromJavaCore;
 	@Singular
 	protected List<SimpleTypeDto> classParameters;
 
 	@Override
 	public String toString() {
-		return this.name;
+		String typeName = this.type == null ? "" : this.type;
+
+		String typeArgumentProcessed = "<" + classParameters.stream()
+		        .map(SimpleTypeDto::getType)
+		        .collect(Collectors.joining(" ")) + ">";
+
+		String typeArgument = classParameters.isEmpty() ? "" : typeArgumentProcessed;
+
+		return typeName + typeArgument + " " + this.name;
 	}
 
 }

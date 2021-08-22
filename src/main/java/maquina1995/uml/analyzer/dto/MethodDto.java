@@ -21,7 +21,7 @@ public class MethodDto {
 	public String toString() {
 		return String.join(" ", this.accessModifier, this.modifiers, this.returnType.toString(), this.name) + " ("
 		        + String.join(",", this.parameters.stream()
-		                .map(ParameterDto::getName)
+		                .map(ParameterDto::toString)
 		                .collect(Collectors.toList()))
 		        + ")";
 	}

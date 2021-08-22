@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import maquina1995.uml.analyzer.dto.ClassArgumentDto;
 import maquina1995.uml.analyzer.dto.ReturnDto;
 import maquina1995.uml.analyzer.service.PackageService;
+import maquina1995.uml.analyzer.util.SanitizeUtils;
 
 @Component
 @RequiredArgsConstructor
@@ -29,11 +30,7 @@ public class ReturnDtoMapper {
 			classArguments = classArgumentDtoMapper.processClassArguments(type);
 		}
 
-		String name = type.asString();
-		if (name.contains("<")) {
-			int genericCharIndex = name.indexOf("<");
-			name = name.substring(0, genericCharIndex);
-		}
+		String name = SanitizeUtils.sanitizeTypeName(type);
 
 		return ReturnDto.builder()
 		        .name(name)

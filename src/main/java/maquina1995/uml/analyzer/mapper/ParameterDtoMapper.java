@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import maquina1995.uml.analyzer.dto.ClassArgumentDto;
 import maquina1995.uml.analyzer.dto.ParameterDto;
 import maquina1995.uml.analyzer.service.PackageService;
+import maquina1995.uml.analyzer.util.SanitizeUtils;
 
 @Component
 @RequiredArgsConstructor
@@ -24,17 +25,18 @@ public class ParameterDtoMapper {
 
 		List<ClassArgumentDto> classArguments = new ArrayList<>();
 
-		if (parameter.getClass()
+		if (parameter.getType()
+		        .getClass()
 		        .isAssignableFrom(ClassOrInterfaceType.class)) {
-			classArguments = classArgumentDtoMapper.processClassArguments(parameter);
+			classArguments = classArgumentDtoMapper.processClassArguments(parameter.getType());
 		}
 
-		String className = parameter.getTypeAsString()
-		        .replace("[", "")
-		        .replace("]", "");
+		String typeName = SanitizeUtils.sanitizeTypeName(parameter);
+
 		return ParameterDto.builder()
-		        .name(className)
-		        .isFromJavaCore(packageService.isJavaCoreClass(parameter, className))
+		        .name(parameter.getNameAsString())
+		        .type(typeName)
+		        .isFromJavaCore(packageService.isJavaCoreClass(parameter, typeName))
 		        .classParameters(classArguments)
 		        .build();
 	}

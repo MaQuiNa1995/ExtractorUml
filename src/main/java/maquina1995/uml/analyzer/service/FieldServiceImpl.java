@@ -47,14 +47,13 @@ public final class FieldServiceImpl implements FieldService {
 
 	private Function<String, FieldDto> createFieldDto(String accessModifier, String modifiers, String type,
 	        boolean isFromJavaCore) {
-		return fieldName -> {
-			return FieldDto.builder()
-			        .name(fieldName)
-			        .accessModifier(accessModifier)
-			        .modifiers(Arrays.asList(modifiers.split(" ")))
-			        .type(type)
-			        .isProjectObject(!isFromJavaCore)
-			        .build();
-		};
+		return fieldName -> FieldDto.builder()
+		        .name(fieldName)
+		        .accessModifier(accessModifier)
+		        .modifiers(Arrays.asList(modifiers.split(" ")))
+		        .type(type)
+		        .isProjectObject(!isFromJavaCore)
+		        .build();
+
 	}
 }

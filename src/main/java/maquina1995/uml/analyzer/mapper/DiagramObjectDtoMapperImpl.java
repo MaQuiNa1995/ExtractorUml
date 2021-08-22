@@ -1,4 +1,4 @@
-package maquina1995.uml.analyzer.service;
+package maquina1995.uml.analyzer.mapper;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,8 +19,6 @@ import maquina1995.uml.analyzer.dto.ClassDto;
 import maquina1995.uml.analyzer.dto.DiagramObjectDto;
 import maquina1995.uml.analyzer.dto.EnumDto;
 import maquina1995.uml.analyzer.dto.InterfaceDto;
-import maquina1995.uml.analyzer.mapper.FieldDtoMapper;
-import maquina1995.uml.analyzer.mapper.MethodDtoMapper;
 import maquina1995.uml.analyzer.util.NodeUtils;
 
 @Service
@@ -31,7 +29,7 @@ public class DiagramObjectDtoMapperImpl implements DiagramObjectDtoMapper {
 	private final MethodDtoMapper methodDtoMapper;
 
 	@Override
-	public DiagramObjectDto analyzeEnum(EnumDeclaration enumObject) {
+	public DiagramObjectDto mapEnum(EnumDeclaration enumObject) {
 
 		DiagramObjectDto enumDto = new EnumDto();
 		enumDto.setName(enumObject.getNameAsString());
@@ -49,7 +47,7 @@ public class DiagramObjectDtoMapperImpl implements DiagramObjectDtoMapper {
 	}
 
 	@Override
-	public DiagramObjectDto analyzeClassOrInterface(ClassOrInterfaceDeclaration classOrInterface) {
+	public DiagramObjectDto mapClassOrInterface(ClassOrInterfaceDeclaration classOrInterface) {
 
 		DiagramObjectDto classDiagramObject = classOrInterface.isInterface() ? new InterfaceDto() : new ClassDto();
 		String className = this.processClassNameWithGenerics(classOrInterface.getNameAsString(),

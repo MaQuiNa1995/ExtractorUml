@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import maquina1995.uml.analyzer.constants.RegExpConstants;
@@ -37,17 +38,17 @@ public class DiagramServiceImpl implements DiagramService {
 
 	@Override
 	@SneakyThrows
-	public void createDiagramFile(String txt) {
-		File file = new File(txt);
+	public void createDiagramFile(String txtPath) {
 
+		@Cleanup
+		BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(txtPath)));
 		StringBuilder stringBuilder = new StringBuilder();
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				stringBuilder.append(line)
-				        .append("\n");
-			}
+
+		String line;
+		while ((line = bufferedReader.readLine()) != null) {
+			stringBuilder.append(line + "\n");
 		}
+
 		this.createJavaDiagramFile(stringBuilder.toString());
 	}
 
@@ -166,21 +167,23 @@ public class DiagramServiceImpl implements DiagramService {
 		        .map(MethodDto::getParameters)
 		        .forEach(parameters -> parameters.forEach(parameter -> {
 
-			        String parameterProcessed = parameter.getName();
+			        String parameterProcessed = parameter.getType();
 
 			        String typeAggregation = " o-- ";
-			        if (parameterProcessed.contains("<") && parameterProcessed.contains(">")
-			                && parameterProcessed.split("<")[0].matches(
-			                        "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
+			        if (parameterProcessed.matches(
+			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
 				        typeAggregation = " \"1\" o-- \"N\" ";
-				        parameterProcessed = parameterProcessed.substring(parameterProcessed.indexOf("<") + 1,
-				                parameterProcessed.indexOf(">"));
-			        } else if (parameterProcessed.contains("<") && parameterProcessed.contains(">")) {
-				        parameterProcessed = parameterProcessed.split("<")[0];
 			        }
+
 			        if (!parameter.getIsFromJavaCore()
 			                .booleanValue()) {
 				        this.addAggregation(fullCompositionClasses, className, parameterProcessed, typeAggregation);
+			        } else if (parameterProcessed.matches(
+			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
+				        parameter.getClassParameters()
+				                .forEach(e -> this.addAggregation(fullCompositionClasses, className, e.getType(),
+				                        " \"1\" o-- \"N\" "));
+
 			        }
 
 		        }));
@@ -201,7 +204,7 @@ public class DiagramServiceImpl implements DiagramService {
 		}
 
 		if (!returnType.getIsFromJavaCore()
-		        .booleanValue() && !returnTypeName.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
+		        .booleanValue()) {
 			this.addAggregation(fullCompositionClasses, className, returnTypeName, aggregationType);
 		}
 	}
@@ -227,37 +230,8 @@ public class DiagramServiceImpl implements DiagramService {
 	private String createFieldsString(List<FieldDto> fields) {
 
 		return fields.stream()
-		        .map(fieldDto -> {
-			        return new StringBuilder().append(fieldDto.getAccessModifier())
-			                .append(this.parseModifier(fieldDto.getModifiers()) + " ")
-			                .append(fieldDto.getType() + " ")
-			                .append(fieldDto.getName());
-		        })
+		        .map(FieldDto::toString)
 		        .collect(Collectors.joining("\n")) + "\n";
-	}
-
-	private String parseModifier(List<String> modifiersFromDto) {
-
-		StringBuilder modifiers = new StringBuilder("");
-
-		modifiersFromDto.stream()
-		        .map(this::parseAbstractStatic)
-		        .forEach(modifier -> modifiers.append(" ")
-		                .append(modifier));
-
-		return modifiers.append(" ")
-		        .toString()
-		        .trim();
-	}
-
-	private String parseAbstractStatic(String modifier) {
-
-		String parsedModifier = modifier;
-		if (modifier.toLowerCase()
-		        .matches("(static|abstract)")) {
-			parsedModifier = "{" + modifier + "}";
-		}
-		return parsedModifier;
 	}
 
 	private String createExtendsOrImplements(List<String> classes, String extendsOrImplements) {
