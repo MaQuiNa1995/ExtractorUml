@@ -2,13 +2,13 @@ package maquina1995.uml.analyzer.dto;
 
 import java.util.List;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@Builder
 public class FieldDto {
 
 	private String accessModifier;

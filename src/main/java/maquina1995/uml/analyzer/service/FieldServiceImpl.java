@@ -2,7 +2,8 @@ package maquina1995.uml.analyzer.service;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ public final class FieldServiceImpl implements FieldService {
 	private final PackageService packageService;
 
 	@Override
-	public void analyzeField(FieldDeclaration fieldDeclaration, List<FieldDto> fieldsDto) {
+	public List<FieldDto> analyzeField(FieldDeclaration fieldDeclaration) {
 
 		String accessModifier = NodeUtils.parseAccesModifier(fieldDeclaration.getAccessSpecifier()
 		        .toString());
@@ -37,22 +38,23 @@ public final class FieldServiceImpl implements FieldService {
 
 		boolean isFromJavaCore = packageService.isjavaCoreClass(fieldDeclaration, type);
 
-		fieldDeclaration.getVariables()
+		return fieldDeclaration.getVariables()
 		        .stream()
 		        .map(VariableDeclarator::getNameAsString)
-		        .forEach(this.createFieldDto(fieldsDto, accessModifier, modifiers, type, isFromJavaCore));
+		        .map(this.createFieldDto(accessModifier, modifiers, type, isFromJavaCore))
+		        .collect(Collectors.toList());
 	}
 
-	private Consumer<String> createFieldDto(List<FieldDto> fieldsDto, String accessModifier, String modifiers,
-	        String type, boolean isFromJavaCore) {
+	private Function<String, FieldDto> createFieldDto(String accessModifier, String modifiers, String type,
+	        boolean isFromJavaCore) {
 		return fieldName -> {
-			FieldDto fieldDto = new FieldDto();
-			fieldDto.setName(fieldName);
-			fieldDto.setAccessModifier(accessModifier);
-			fieldDto.setModifiers(Arrays.asList(modifiers.split(" ")));
-			fieldDto.setType(type);
-			fieldDto.setIsProjectObject(!isFromJavaCore);
-			fieldsDto.add(fieldDto);
+			return FieldDto.builder()
+			        .name(fieldName)
+			        .accessModifier(accessModifier)
+			        .modifiers(Arrays.asList(modifiers.split(" ")))
+			        .type(type)
+			        .isProjectObject(!isFromJavaCore)
+			        .build();
 		};
 	}
 }

@@ -24,6 +24,12 @@ import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
+/**
+ * TODO: Esto necesita una refactorización :P
+ * 
+ * @author MaQuiNa1995
+ *
+ */
 @Slf4j
 @Service
 public class DiagramServiceImpl implements DiagramService {
@@ -134,7 +140,7 @@ public class DiagramServiceImpl implements DiagramService {
 	private void addAggregation(StringBuilder fullCompositionClasses, String className, String compositionClass,
 	        String aggregationType) {
 		if (!fullCompositionClasses.toString()
-		        .contains(compositionClass) && !compositionClass.matches(RegExpConstants.JAVA_CORE_REG_EXP)
+		        .contains(compositionClass) && !compositionClass.matches(RegExpConstants.JAVA_LANG_REG_EXP)
 		        && !compositionClass.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN)) {
 
 			fullCompositionClasses.append(String.join(aggregationType, className.split("<")[0], compositionClass))

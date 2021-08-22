@@ -1,6 +1,5 @@
 package maquina1995.uml.analyzer.dto;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,7 +13,7 @@ import lombok.Setter;
 public class MethodDto {
 	private String name;
 	private String accessModifier;
-	private final List<ParameterDto> parameters = new ArrayList<>();
+	private List<ParameterDto> parameters;
 	private String returnType;
 	private Boolean isReturnFromJavaCore;
 	private String modifiers;

@@ -7,7 +7,7 @@
 
 	<groupId>maquina1995</groupId>
 	<artifactId>uml.analyzer</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>

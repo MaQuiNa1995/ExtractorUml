@@ -21,14 +21,15 @@ public class FileServiceImpl implements FileService {
 	public List<Path> iterateDirectory(Path path) {
 
 		log.debug("Iterando la ruta: {}", path);
-		List<Path> paths = new ArrayList<>();
 
+		List<Path> paths;
 		try (Stream<Path> fileStream = Files.walk(path)) {
 			paths = fileStream.sorted()
 			        .filter(this.createNonNullJavaFileFilter())
 			        .collect(Collectors.toList());
 
 		} catch (final IOException exception) {
+			paths = new ArrayList<>();
 			log.error(exception.getMessage());
 		}
 		return paths;

@@ -21,8 +21,11 @@ public class PackageServiceImpl implements PackageService {
 
 		List<String> imports = this.getImportsFromClass(type);
 
-		return name.matches(RegExpConstants.JAVA_CORE_REG_EXP) || this.getImportFromClass(imports, name)
+		boolean isFromJavaLang = name.matches(RegExpConstants.JAVA_LANG_REG_EXP);
+		boolean isFromJavaCore = this.getImportFromClass(imports, name)
 		        .matches(RegExpConstants.JAVA_CORE_PACKAGE_REGEXP);
+
+		return isFromJavaLang || isFromJavaCore;
 	}
 
 	private String getImportFromClass(List<String> importsAsString, String name) {

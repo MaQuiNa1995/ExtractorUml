@@ -48,7 +48,7 @@ public class NodeUtils {
 	}
 
 	public String parseClassModifiers(List<Modifier> modifiersNodeList) {
-		StringBuilder modifiers = new StringBuilder("");
+		StringBuilder modifiers = new StringBuilder();
 
 		modifiersNodeList.stream()
 		        .map(Modifier::getKeyword)

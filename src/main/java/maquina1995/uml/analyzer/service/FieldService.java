@@ -8,6 +8,6 @@ import maquina1995.uml.analyzer.dto.FieldDto;
 
 public interface FieldService {
 
-	void analyzeField(FieldDeclaration fieldDeclaration, List<FieldDto> fieldsDto);
+	List<FieldDto> analyzeField(FieldDeclaration fieldDeclaration);
 
 }

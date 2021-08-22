@@ -1,6 +1,5 @@
 package maquina1995.uml.analyzer.dto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
@@ -13,9 +12,9 @@ public abstract class DiagramObject {
 	protected String name;
 	protected String modifiers;
 	protected String accessModifier;
-	protected final List<String> implement = new ArrayList<>();
-	protected final List<String> extended = new ArrayList<>();
-	protected final List<FieldDto> fields = new ArrayList<>();
-	protected final List<MethodDto> methods = new ArrayList<>();
+	protected List<String> implement;
+	protected List<String> extended;
+	protected List<FieldDto> fields;
+	protected List<MethodDto> methods;
 
 }

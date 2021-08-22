@@ -2,7 +2,6 @@ package maquina1995.uml.analyzer.service;
 
 import java.util.List;
 
-import lombok.SneakyThrows;
 import maquina1995.uml.analyzer.dto.DiagramObject;
 
 public interface DiagramService {
