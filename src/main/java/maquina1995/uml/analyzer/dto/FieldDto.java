@@ -12,11 +12,11 @@ public class FieldDto extends SimpleTypeDto {
 	private String accessModifier;
 	private String modifiers;
 
-//	@Override
-//	public String toString() {
-//		String modifiersSanitized = this.modifiers.isEmpty() ? "" : this.modifiers;
-//
-//		return this.accessModifier + modifiersSanitized + " " + this.type + " " + this.name;
-//	}
+	@Override
+	public String toString() {
+		String modifiersSanitized = this.modifiers.isEmpty() ? "" : this.modifiers;
+
+		return this.accessModifier + modifiersSanitized + super.toString();
+	}
 
 }
