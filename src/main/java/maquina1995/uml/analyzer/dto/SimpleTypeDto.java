@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Singular;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -16,7 +15,6 @@ public class SimpleTypeDto {
 	protected String name;
 	protected String type;
 	protected Boolean isFromJavaCore;
-	@Singular
 	protected List<ClassArgumentDto> classParameters;
 
 	@Override
