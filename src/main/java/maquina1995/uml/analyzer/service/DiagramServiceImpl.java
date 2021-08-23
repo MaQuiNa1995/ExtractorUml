@@ -21,7 +21,6 @@ import maquina1995.uml.analyzer.constants.RegExpConstants;
 import maquina1995.uml.analyzer.dto.DiagramObjectDto;
 import maquina1995.uml.analyzer.dto.FieldDto;
 import maquina1995.uml.analyzer.dto.MethodDto;
-import maquina1995.uml.analyzer.dto.ReturnDto;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
@@ -129,8 +128,14 @@ public class DiagramServiceImpl implements DiagramService {
 				        this.addAggregation(fullCompositionClasses, className, compositionClass, " *-- ");
 			        });
 
-			List<String> methods = this.processMethods(classDiagramObject.getMethods(), classDiagramObject.getName(),
-			        fullCompositionClasses);
+//			List<String> classNames = classes.stream()
+//			        .map(DiagramObjectDto::getName) 
+//			        .collect(Collectors.toList());
+
+			List<String> methods = this.processMethods(classDiagramObject.getMethods());
+
+//			, classDiagramObject.getName(),
+//	        fullCompositionClasses, classNames
 
 			fullStringClasses.add(this.createFullStringClassLine(className, extendsString, implementsString, classType,
 			        fieldsStrings, acccessModifier, methods, specialModifiers));
@@ -151,63 +156,38 @@ public class DiagramServiceImpl implements DiagramService {
 		}
 	}
 
-	private List<String> processMethods(List<MethodDto> methods, String className,
-	        StringBuilder fullCompositionClasses) {
+	private List<String> processMethods(List<MethodDto> methods /**
+	                                                             * ,String className, StringBuilder full
+	                                                             * CompositionClasses ,List<String> classNames
+	                                                             **/
+	) {
 
-		List<String> fullStringMethods = methods.stream()
+//		methods.stream()
+//		        .forEach(
+//		                method -> this.processReturnAggregation(className, fullCompositionClasses, method, classNames));
+
+		return methods.stream()
 		        .map(MethodDto::toString)
 		        .collect(Collectors.toList());
-
-		for (MethodDto method : methods) {
-
-			this.processReturnAggregation(className, fullCompositionClasses, method);
-		}
-
-		methods.stream()
-		        .map(MethodDto::getParameters)
-		        .forEach(parameters -> parameters.forEach(parameter -> {
-
-			        String parameterProcessed = parameter.getType();
-
-			        String typeAggregation = " o-- ";
-			        if (parameterProcessed.matches(
-			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
-				        typeAggregation = " \"1\" o-- \"N\" ";
-			        }
-
-			        if (!parameter.getIsFromJavaCore()
-			                .booleanValue()) {
-				        this.addAggregation(fullCompositionClasses, className, parameterProcessed, typeAggregation);
-			        } else if (parameterProcessed.matches(
-			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
-				        parameter.getClassParameters()
-				                .forEach(e -> this.addAggregation(fullCompositionClasses, className, e.getType(),
-				                        " \"1\" o-- \"N\" "));
-
-			        }
-
-		        }));
-
-		return fullStringMethods;
 	}
 
-	private void processReturnAggregation(String className, StringBuilder fullCompositionClasses, MethodDto method) {
-		String aggregationType = " o-- ";
-
-		ReturnDto returnType = method.getReturnType();
-
-		String returnTypeName = returnType.toString();
-		if (returnTypeName.matches(
-		        "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
-
-			aggregationType = " \"1\" o-- \"N\" ";
-		}
-
-		if (!returnType.getIsFromJavaCore()
-		        .booleanValue()) {
-			this.addAggregation(fullCompositionClasses, className, returnTypeName, aggregationType);
-		}
-	}
+//	private void processReturnAggregation(String className, StringBuilder fullCompositionClasses, MethodDto method,
+//	        List<String> classNames) {
+//		String aggregationType = " o-- ";
+//
+//		ReturnDto returnType = method.getReturnType();
+//
+//		String returnTypeName = returnType.toString();
+//		if (returnTypeName.matches(
+//		        "^(Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet)")) {
+//			aggregationType = " \"1\" o-- \"N\" ";
+//		}
+//
+//		if (!returnType.getIsFromJavaCore()
+//		        .booleanValue() && classNames.contains(returnTypeName)) {
+//			this.addAggregation(fullCompositionClasses, className, returnTypeName, aggregationType);
+//		}
+//	}
 
 	private String getType(DiagramObjectDto classDiagramObject) {
 		String type;
