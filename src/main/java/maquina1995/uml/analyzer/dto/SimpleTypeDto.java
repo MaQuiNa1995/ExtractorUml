@@ -17,7 +17,7 @@ public class SimpleTypeDto {
 	protected String type;
 	protected Boolean isFromJavaCore;
 	@Singular
-	protected List<SimpleTypeDto> classParameters;
+	protected List<ClassArgumentDto> classParameters;
 
 	@Override
 	public String toString() {

@@ -1,30 +1,22 @@
 package maquina1995.uml.analyzer.dto;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Builder
-public class FieldDto {
+@SuperBuilder
+public class FieldDto extends SimpleTypeDto {
 
 	private String accessModifier;
-	private List<String> modifiers;
-	private String type;
-	private String name;
-	private Boolean isProjectObject;
+	private String modifiers;
 
-	@Override
-	public String toString() {
-		String modifiersSanitized = this.modifiers.isEmpty() ? ""
-		        : this.modifiers.stream()
-		                .collect(Collectors.joining(" "));
-
-		return this.accessModifier + modifiersSanitized + " " + this.type + " " + this.name;
-	}
+//	@Override
+//	public String toString() {
+//		String modifiersSanitized = this.modifiers.isEmpty() ? "" : this.modifiers;
+//
+//		return this.accessModifier + modifiersSanitized + " " + this.type + " " + this.name;
+//	}
 
 }

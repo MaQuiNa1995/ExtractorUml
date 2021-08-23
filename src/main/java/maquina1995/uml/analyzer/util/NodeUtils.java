@@ -3,6 +3,7 @@ package maquina1995.uml.analyzer.util;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Modifier.Keyword;
 
@@ -11,10 +12,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class NodeUtils {
 
-	public String parseAccesModifier(String modifier) {
+	public String parseAccesModifier(AccessSpecifier accessSpecifier) {
 		String modifierParsed;
-		switch (modifier) {
 
+		switch (accessSpecifier.toString()) {
 		case "PUBLIC":
 			modifierParsed = "+";
 			break;
@@ -32,7 +33,7 @@ public class NodeUtils {
 		return modifierParsed;
 	}
 
-	public StringBuilder parseModifiers(List<Modifier> modifiersNodeList) {
+	public String parseModifiers(List<Modifier> modifiersNodeList) {
 		StringBuilder modifiers = new StringBuilder("");
 
 		modifiersNodeList.stream()
@@ -44,7 +45,9 @@ public class NodeUtils {
 		        .forEach(modifier -> modifiers.append(modifier)
 		                .append(" "));
 
-		return modifiers;
+		return modifiers.toString()
+		        .toLowerCase()
+		        .trim();
 	}
 
 	public String parseClassModifiers(List<Modifier> modifiersNodeList) {

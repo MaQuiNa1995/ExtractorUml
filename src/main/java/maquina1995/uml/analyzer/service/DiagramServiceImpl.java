@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -84,7 +83,7 @@ public class DiagramServiceImpl implements DiagramService {
 
 	private String createfullDiagramString(List<DiagramObjectDto> classes) {
 
-		StringBuilder fullDiagram = new StringBuilder("@startuml\nhide empty members\nskinparam groupInheritance 2\n");
+		StringBuilder fullDiagram = new StringBuilder("@startuml\nhide empty members\nskinparam groupInheritance 3\n");
 		this.diagramsToString(classes)
 		        .forEach(fullDiagram::append);
 		fullDiagram.append("@enduml");
@@ -143,14 +142,23 @@ public class DiagramServiceImpl implements DiagramService {
 
 	private void processCompositionFields(StringBuilder fullCompositionClasses, List<FieldDto> fields,
 	        String className) {
-		Predicate<FieldDto> typeIsNotGeneric = e -> !e.getType()
-		        .contains("<");
 
 		fields.stream()
-		        .filter(typeIsNotGeneric)
-		        .map(FieldDto::getType)
-		        .filter(e -> !e.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN))
-		        .forEach(fieldName -> this.addAggregation(fullCompositionClasses, className, fieldName, " *-- "));
+		        .forEach(field -> {
+
+			        String parameterProcessed = field.getType();
+
+			        if (!field.getIsFromJavaCore()
+			                .booleanValue()) {
+				        this.addAggregation(fullCompositionClasses, className, parameterProcessed, " o-- ");
+			        } else if (parameterProcessed.matches(
+			                "Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet")) {
+				        field.getClassParameters()
+				                .forEach(e -> this.addAggregation(fullCompositionClasses, className, e.getType(),
+				                        " \"1\" o-- \"N\" "));
+			        }
+
+		        });
 	}
 
 	private void addAggregation(StringBuilder fullCompositionClasses, String className, String compositionClass,

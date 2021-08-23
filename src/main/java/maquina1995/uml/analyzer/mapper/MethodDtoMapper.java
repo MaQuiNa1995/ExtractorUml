@@ -10,7 +10,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import lombok.RequiredArgsConstructor;
 import maquina1995.uml.analyzer.dto.MethodDto;
 import maquina1995.uml.analyzer.dto.ParameterDto;
-import maquina1995.uml.analyzer.dto.ReturnDto;
 import maquina1995.uml.analyzer.util.NodeUtils;
 
 @Component
@@ -28,23 +27,16 @@ public class MethodDtoMapper {
 
 	private MethodDto createMethodFromDeclaration(MethodDeclaration methodDeclaration) {
 
-		ReturnDto returnType = returnDtoMapper.processReturn(methodDeclaration.getType());
-		String className = methodDeclaration.getNameAsString();
-		String modifiers = NodeUtils.parseModifiers(methodDeclaration.getModifiers())
-		        .toString();
-		String accessModifiers = NodeUtils.parseAccesModifier(methodDeclaration.getAccessSpecifier()
-		        .asString());
-
 		List<ParameterDto> parameterDtos = methodDeclaration.getParameters()
 		        .stream()
 		        .map(parameterDtoMapper::createParameterDto)
 		        .collect(Collectors.toList());
 
 		return MethodDto.builder()
-		        .returnType(returnType)
-		        .name(className)
-		        .accessModifier(accessModifiers)
-		        .modifiers(modifiers)
+		        .returnType(returnDtoMapper.processReturn(methodDeclaration.getType()))
+		        .name(methodDeclaration.getNameAsString())
+		        .accessModifier(NodeUtils.parseAccesModifier(methodDeclaration.getAccessSpecifier()))
+		        .modifiers(NodeUtils.parseModifiers(methodDeclaration.getModifiers()))
 		        .parameters(parameterDtos)
 		        .build();
 	}

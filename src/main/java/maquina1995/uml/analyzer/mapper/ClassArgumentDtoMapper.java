@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 
@@ -24,27 +23,6 @@ public class ClassArgumentDtoMapper {
 
 		NodeList<Type> classArguments = ((ClassOrInterfaceType) type).getTypeArguments()
 		        .orElse(new NodeList<>());
-
-		return classArguments.stream()
-		        .map(ClassOrInterfaceType.class::cast)
-		        .map(classArgument -> ClassArgumentDto.builder()
-		                .name(classArgument.getNameAsString())
-		                .type(classArgument.getElementType()
-		                        .toString())
-		                .isFromJavaCore(packageService.isJavaCoreClass(classArgument, classArgument.getNameAsString()))
-		                .classParameters(this.processClassArguments(classArgument))
-		                .build())
-		        .collect(Collectors.toList());
-	}
-
-	public List<ClassArgumentDto> processClassArguments(Parameter parameter) {
-
-//		parameter.get
-//		
-//		((ClassOrInterfaceType) parameter).getTypeArguments()
-//        .orElse(new NodeList<>());
-
-		NodeList<Type> classArguments = new NodeList<>();
 
 		return classArguments.stream()
 		        .map(ClassOrInterfaceType.class::cast)

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -38,8 +39,7 @@ public class DiagramObjectDtoMapperImpl implements DiagramObjectDtoMapper {
 		NodeList<Modifier> modifiers = enumObject.getModifiers();
 		NodeList<ClassOrInterfaceType> implementedTypes = enumObject.getImplementedTypes();
 		List<FieldDeclaration> fields = enumObject.getFields();
-		String acessModifier = enumObject.getAccessSpecifier()
-		        .toString();
+		AccessSpecifier acessModifier = enumObject.getAccessSpecifier();
 
 		this.processDiagramClass(enumDto, methods, modifiers, acessModifier, implementedTypes, null, fields);
 
@@ -57,8 +57,7 @@ public class DiagramObjectDtoMapperImpl implements DiagramObjectDtoMapper {
 		NodeList<ClassOrInterfaceType> implementedTypes = classOrInterface.getImplementedTypes();
 		NodeList<ClassOrInterfaceType> extendedTypes = classOrInterface.getExtendedTypes();
 		List<FieldDeclaration> fields = classOrInterface.getFields();
-		String accessModifier = classOrInterface.getAccessSpecifier()
-		        .toString();
+		AccessSpecifier accessModifier = classOrInterface.getAccessSpecifier();
 
 		classDiagramObject.setName(className);
 		this.processDiagramClass(classDiagramObject, methods, modifiers, accessModifier, implementedTypes,
@@ -76,17 +75,17 @@ public class DiagramObjectDtoMapperImpl implements DiagramObjectDtoMapper {
 	 * @param classDiagramDto
 	 * @param methods
 	 * @param modifiers
-	 * @param accessEspecifier
+	 * @param accessModifier
 	 * @param implementedTypes
 	 * @param extendedTypes
 	 * @param fields
 	 */
 	private void processDiagramClass(DiagramObjectDto classDiagramDto, List<MethodDeclaration> methods,
-	        List<Modifier> modifiers, String accessEspecifier, NodeList<ClassOrInterfaceType> implementedTypes,
+	        List<Modifier> modifiers, AccessSpecifier accessModifier, NodeList<ClassOrInterfaceType> implementedTypes,
 	        NodeList<ClassOrInterfaceType> extendedTypes, List<FieldDeclaration> fields) {
 
 		classDiagramDto.setModifiers(NodeUtils.parseClassModifiers(modifiers));
-		classDiagramDto.setAccessModifier(NodeUtils.parseAccesModifier(accessEspecifier));
+		classDiagramDto.setAccessModifier(NodeUtils.parseAccesModifier(accessModifier));
 		classDiagramDto.setFields(fieldDtoMapper.parseClassFields(fields));
 		classDiagramDto.setMethods(methodDtoMapper.parseMethodSignature(methods));
 		classDiagramDto.setImplement(this.parseClassNodeListToString(implementedTypes));
