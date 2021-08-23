@@ -55,7 +55,4 @@ public class RegExpConstants {
 	        JAVA_LANG_INVOKE, JAVA_LANG_INTRUMENT, JAVA_LANG, JAVA_PRIMITIVES) + ")$";
 
 	public final String JAVA_CORE_PACKAGE_REGEXP = "^(((java\\.)|(javax\\.)|(org\\.ietf\\.jgss)|(org\\.omg\\.)|(org\\.w3c\\.dom)|(org\\.xml\\.sax)).*)";
-
-	public final String BLACK_LIST = "^(Serializable)$";
-
 }

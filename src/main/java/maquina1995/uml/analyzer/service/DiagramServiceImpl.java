@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -26,10 +27,9 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
 /**
- * TODO: Esto necesita una refactorización :P
  * 
  * @author MaQuiNa1995
- *
+ * 
  */
 @Slf4j
 @Service
@@ -85,64 +85,72 @@ public class DiagramServiceImpl implements DiagramService {
 	private String createfullDiagramString(List<DiagramObjectDto> classes) {
 
 		StringBuilder fullDiagram = new StringBuilder("@startuml\nhide empty members\nskinparam groupInheritance 2\n");
-		this.convertToString(classes)
+		this.diagramsToString(classes)
 		        .forEach(fullDiagram::append);
 		fullDiagram.append("@enduml");
 
 		return fullDiagram.toString();
 	}
 
-	private List<String> convertToString(List<DiagramObjectDto> classes) {
+	private List<String> diagramsToString(List<DiagramObjectDto> classes) {
 		List<String> fullStringClasses = new ArrayList<>();
 
 		StringBuilder fullCompositionClasses = new StringBuilder();
+		classes.forEach(this.diagramToString(fullStringClasses, fullCompositionClasses));
 
-		for (DiagramObjectDto classDiagramObject : classes) {
+		return fullStringClasses;
+	}
+
+	private Consumer<DiagramObjectDto> diagramToString(List<String> fullStringClasses,
+	        StringBuilder fullCompositionClasses) {
+		return classDiagramObject -> {
 
 			fullCompositionClasses.setLength(0);
 
 			// Class
+			String className = classDiagramObject.getName();
 			String classType = this.getType(classDiagramObject);
 
 			// Interface / Extends
 			String extendsString = this.createExtendsOrImplements(classDiagramObject.getExtended(), " extends ");
 			String implementsString = this.createExtendsOrImplements(classDiagramObject.getImplement(), " implements ");
 
+			// Fields
+			String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
+			this.processCompositionFields(fullCompositionClasses, classDiagramObject.getFields(),
+			        classDiagramObject.getName());
+
+			// Modifiers
 			String acccessModifier = classDiagramObject.getAccessModifier();
 			String specialModifiers = classDiagramObject.getModifiers();
-			String fieldsStrings = this.createFieldsString(classDiagramObject.getFields());
-			String className = classDiagramObject.getName();
 
-			Predicate<FieldDto> isProjectObject = FieldDto::getIsProjectObject;
-			Predicate<FieldDto> typeIsNotGeneric = e -> !e.getType()
-			        .contains("<");
-
-			classDiagramObject.getFields()
+			// Methods
+			List<String> methods = classDiagramObject.getMethods()
 			        .stream()
-			        .filter(isProjectObject.and(typeIsNotGeneric))
-			        .filter(FieldDto::getIsProjectObject)
-			        .map(FieldDto::getType)
-			        .filter(e -> !e.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN))
-			        .forEach(fieldName -> {
-				        String compositionClass = fieldName.split("<")[0];
-				        this.addAggregation(fullCompositionClasses, className, compositionClass, " *-- ");
-			        });
+			        .map(MethodDto::toString)
+			        .collect(Collectors.toList());
 
-//			List<String> classNames = classes.stream()
-//			        .map(DiagramObjectDto::getName) 
-//			        .collect(Collectors.toList());
+			// Full class text
+			String fullClassLine = acccessModifier + specialModifiers + classType + className + extendsString
+			        + implementsString + "{\n" + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
+			fullStringClasses.add(fullClassLine);
 
-			List<String> methods = this.processMethods(classDiagramObject.getMethods());
-
-//			, classDiagramObject.getName(),
-//	        fullCompositionClasses, classNames
-
-			fullStringClasses.add(this.createFullStringClassLine(className, extendsString, implementsString, classType,
-			        fieldsStrings, acccessModifier, methods, specialModifiers));
-
+			// Composition text
 			fullStringClasses.add(fullCompositionClasses.toString());
-		}
-		return fullStringClasses;
+
+		};
+	}
+
+	private void processCompositionFields(StringBuilder fullCompositionClasses, List<FieldDto> fields,
+	        String className) {
+		Predicate<FieldDto> typeIsNotGeneric = e -> !e.getType()
+		        .contains("<");
+
+		fields.stream()
+		        .filter(typeIsNotGeneric)
+		        .map(FieldDto::getType)
+		        .filter(e -> !e.matches(RegExpConstants.GENERIC_CORE_JAVA_OBJECT_PATTERN))
+		        .forEach(fieldName -> this.addAggregation(fullCompositionClasses, className, fieldName, " *-- "));
 	}
 
 	private void addAggregation(StringBuilder fullCompositionClasses, String className, String compositionClass,
@@ -155,39 +163,6 @@ public class DiagramServiceImpl implements DiagramService {
 			        .append("\n");
 		}
 	}
-
-	private List<String> processMethods(List<MethodDto> methods /**
-	                                                             * ,String className, StringBuilder full
-	                                                             * CompositionClasses ,List<String> classNames
-	                                                             **/
-	) {
-
-//		methods.stream()
-//		        .forEach(
-//		                method -> this.processReturnAggregation(className, fullCompositionClasses, method, classNames));
-
-		return methods.stream()
-		        .map(MethodDto::toString)
-		        .collect(Collectors.toList());
-	}
-
-//	private void processReturnAggregation(String className, StringBuilder fullCompositionClasses, MethodDto method,
-//	        List<String> classNames) {
-//		String aggregationType = " o-- ";
-//
-//		ReturnDto returnType = method.getReturnType();
-//
-//		String returnTypeName = returnType.toString();
-//		if (returnTypeName.matches(
-//		        "^(Iterable|Collection|List|Queue|Set|ArrayList|LinkedList|Vector|Stack|PriorityQueue|Deque|ArrayDeque|HashSet|LinkedHashSet|SortedSet|TreeSet)")) {
-//			aggregationType = " \"1\" o-- \"N\" ";
-//		}
-//
-//		if (!returnType.getIsFromJavaCore()
-//		        .booleanValue() && classNames.contains(returnTypeName)) {
-//			this.addAggregation(fullCompositionClasses, className, returnTypeName, aggregationType);
-//		}
-//	}
 
 	private String getType(DiagramObjectDto classDiagramObject) {
 		String type;
@@ -217,16 +192,7 @@ public class DiagramServiceImpl implements DiagramService {
 	private String createExtendsOrImplements(List<String> classes, String extendsOrImplements) {
 //		TODO: Ñapa para quitar los Serializable
 		classes.remove("Serializable");
-		return extendsOrImplements.matches(RegExpConstants.BLACK_LIST) || classes.isEmpty() ? ""
-		        : extendsOrImplements + String.join(",", classes);
-	}
-
-	private String createFullStringClassLine(String typeName, String extendsString, String implementsString,
-	        String classType, String fieldsStrings, String acccessModifier, List<String> methods,
-	        String specialModifiers) {
-
-		return acccessModifier + specialModifiers + classType + typeName + extendsString + implementsString + "{\n"
-		        + fieldsStrings + "\n" + String.join("\n", methods) + "\n}\n";
+		return classes.isEmpty() ? "" : extendsOrImplements + String.join(",", classes);
 	}
 
 }
